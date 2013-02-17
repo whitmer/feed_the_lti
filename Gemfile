@@ -10,6 +10,7 @@ gem 'dm-migrations'
 gem 'dm-validations'
 gem 'dm-aggregates'
 gem 'dm-postgres-adapter'
+gem 'pg'
 gem 'erubis'
 gem 'sanitize'
 

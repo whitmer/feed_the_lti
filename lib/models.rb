@@ -210,7 +210,7 @@ module Sinatra
   module Models
     configure do  
       env = ENV['RACK_ENV'] || settings.environment
-      DataMapper.setup(:default, (ENV["DATABASE_URL"] || "sqlite3:///#{Dir.pwd}/#{env}.sqlite3"))
+      DataMapper.setup(:default, (ENV["DATABASE_URL"] || ENV["HEROKU_POSTGRESQL_BRONZE_URL"] || "sqlite3:///#{Dir.pwd}/#{env}.sqlite3"))
       DataMapper.auto_upgrade!
     end
     

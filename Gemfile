@@ -14,6 +14,7 @@ gem 'erubis'
 gem 'sanitize'
 
 group :development do
+    gem 'dm-sqlite-adapter'
     gem 'rspec'
     gem 'rack-test'
     gem 'selenium-webdriver'

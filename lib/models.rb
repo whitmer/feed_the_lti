@@ -145,6 +145,14 @@ class ContextFeed
   property :filter, String
   belongs_to :feed
   belongs_to :context
+  
+  def delete_feed
+    if self.feed.context_feeds.length == 1
+      self.feed.feed_entries.destroy
+      self.feed.destroy
+    end
+    self.destroy
+  end
 end
 
 class FeedEntry

@@ -9,6 +9,7 @@ module FeedHandler
     request = Net::HTTP::Get.new(uri.request_uri)
     response = http.request(request) rescue nil
     return FeedHandler.empty_xml unless response
+    puts response.body
     xml = Nokogiri::XML(response.body) rescue FeedHandler.empty_xml
     xml = FeedHandler.empty_xml if xml.css("rss,feed").length == 0
     xml
@@ -64,13 +65,13 @@ module FeedHandler
     # rss 2.0
     xml.css('item').each do |item|
       obj = {
-        :guid => item.css('guid')[0].try(:content),
+        :guid => item.css('guid')[0].try(:content) || item.css('link')[0].try(:content),
         :title => sanitize_and_truncate(item.css('title')[0].try(:inner_html) || "No Title"),
         :url => item.css('link')[0].try(:content),
         :short_html => sanitize_and_truncate(CGI.unescape_html(item.css('description')[0].try(:inner_html) || "")),
         :author_name => "Unknown"
       }
-      entries << obj if obj[:guid] && obj[:url]
+      entries << obj if obj[:url]
     end
     # atom
     xml.css('entry').each do |entry|
@@ -94,7 +95,7 @@ module FeedHandler
   
   def self.sanitize(html)
     html ||= ""
-    Sanitize.clean(html, Sanitize::Config::RELAXED)
+    Sanitize.clean(html, Sanitize::Config::BASIC)
   end
   
   def self.truncate_html(html)

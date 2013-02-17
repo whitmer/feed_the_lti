@@ -59,6 +59,17 @@ module Sinatra
       feed.to_json
     end
     
+    delete "/api/v1/courses/:course_id/feeds/:feed_id.json" do
+      course = Context.first(:context_type => 'course', :id => params['course_id'])
+      cf = ContextFeed.first(:context_id => course.id, :feed_id => params['feed_id'], :user_id => session['user_id']) if course && session['user_id']
+      user = Context.first(:context_type => 'user', :id => session['user_id']) if session['user_id']
+      return {:error => "not authorized"}.to_json unless admin?(params['course_id']) || cf
+      cf ||= ContextFeed.first(:context_id => course.id, :feed_id => params['feed_id']) if course
+      return {:error => "not found"}.to_json unless course && cf
+      cf.delete_feed
+      {:deleted => true}.to_json
+    end
+    
     get "/api/v1/courses/:course_id/feeds.json" do
       course = Context.first(:context_type => 'course', :id => params['course_id'])
       return {:error => "not authorized"}.to_json unless admin?(params['course_id']) || (course && course.allow_student_feeds)

@@ -120,6 +120,13 @@ describe 'API calls' do
     it "should allow students to add feeds if permitted"    
   end
   
+  describe "DELETE remove feed" do
+    it "should require permission"
+    it "should remove feeds if authorized"
+    it "should only remove one instance of the same feed"
+    it "should allow users to delete feeds they added themselves"
+  end
+  
 # get feed entries for the specified user, possibly filtered to a specific feed id
 #       get "/api/v1/users/:user_id/entries.json" do
 #         params['user_id'] = session['user_id'] if params['user_id'] == 'self'

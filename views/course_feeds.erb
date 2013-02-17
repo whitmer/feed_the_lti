@@ -1,9 +1,9 @@
-<div class="row">
+<div class="row <%= 'deletable' if admin?(@course.id) %>">
   <div class="span3">
     <ul id="feeds" rel="courses/<%= @course.id %>" data-count="<%= @course.feed_ids.length %>" class="nav nav-pills nav-stacked">
     </ul>
     <% if admin?(@course.id) || @course.allow_student_feeds %>
-      <input type="text" id="feed_url" placeholder="new feed URL" value=""/>
+      <input type="text" id="feed_url" placeholder="new feed URL" value="" class="span3"/>
       <button class='btn' id="add_feed"><span class='icon icon-plus'></span> Feed</button>
       <button class='btn' id="find_feed"><span class='icon icon-search'></span> Feed</button>
     <% end %>

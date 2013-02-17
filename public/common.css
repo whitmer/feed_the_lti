@@ -20,6 +20,12 @@ body {
 #feed_summary .links {
   padding-left: 20px;
 }
+#feed_summary .delete {
+  display: none;
+}
+.row.deletable #feed_summary .delete {
+  display: inline;
+}
 .entry {
   margin-bottom: 15px;
   max-height: 100px;

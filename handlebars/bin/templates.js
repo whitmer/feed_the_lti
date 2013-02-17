@@ -118,19 +118,14 @@ templates['feed_summary'] = template(function (Handlebars,depth0,helpers,partial
 function program1(depth0,data) {
   
   
-  return "auto-update";}
-
-function program3(depth0,data) {
-  
-  
-  return "\n      <a href=\"#\" id=\"delete_feed\">Delete</a>\n    ";}
+  return "auto-update ";}
 
   buffer += "<div id=\"feed_summary\">\n  <span class=\"posts\">";
   foundHelper = helpers.entry_count;
   stack1 = foundHelper || depth0.entry_count;
   if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
   else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "entry_count", { hash: {} }); }
-  buffer += escapeExpression(stack1) + " posts</span>\n  <span class=\"auto_update\">";
+  buffer += escapeExpression(stack1) + " posts</span>\n  <span class=\"last_checked\">";
   foundHelper = helpers.callback_enabled;
   stack1 = foundHelper || depth0.callback_enabled;
   stack2 = helpers['if'];
@@ -140,21 +135,16 @@ function program3(depth0,data) {
   tmp1.inverse = self.noop;
   stack1 = stack2.call(depth0, stack1, tmp1);
   if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += "</span>\n  <span class=\"last_checked\">last checked ";
+  buffer += "checked ";
   foundHelper = helpers.last_checked;
   stack1 = foundHelper || depth0.last_checked;
   if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
   else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "last_checked", { hash: {} }); }
-  buffer += escapeExpression(stack1) + "</span>\n  <span class=\"links\">\n    <a href=\"#\" id=\"refresh_feed\">Refresh</a>\n    ";
-  foundHelper = helpers.admin;
-  stack1 = foundHelper || depth0.admin;
-  stack2 = helpers['if'];
-  tmp1 = self.program(3, program3, data);
-  tmp1.hash = {};
-  tmp1.fn = tmp1;
-  tmp1.inverse = self.noop;
-  stack1 = stack2.call(depth0, stack1, tmp1);
-  if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += "\n  </span>\n</div>";
+  buffer += escapeExpression(stack1) + "</span>\n  <span class=\"links\">\n    <a href=\"#\" id=\"refresh_feed\">Refresh</a>&nbsp;&nbsp;\n    <a href=\"";
+  foundHelper = helpers.feed_url;
+  stack1 = foundHelper || depth0.feed_url;
+  if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+  else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "feed_url", { hash: {} }); }
+  buffer += escapeExpression(stack1) + "\" target=\"_blank\">Source</a>&nbsp;&nbsp;\n    <a href=\"#\" id=\"delete_feed\">Delete</a>\n  </span>\n</div>";
   return buffer;});
 })();

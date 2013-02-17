@@ -1,0 +1,17 @@
+<div class="entry">
+  <h3><a href="{{url}}" target="_blank">{{ title }}</a></h3>
+  <div class='content'>
+    <div class='author'>
+      {{#if author_email}}
+        <a href="mailto:{{author_email}}">{{ author_name }}</a>
+      {{else}}
+        {{ author_name }}
+      {{/if}}
+    </div>
+    <div class="created">
+      {{ created }}
+    </div>
+    <div class="clear"></div>
+    {{{ short_html }}}
+  </div>
+</div>

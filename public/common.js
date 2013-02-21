@@ -1,8 +1,20 @@
-var $feeds = $("#feeds");
+var $primary_feeds = $("#feeds");
+var $secondary_feeds = $("#user_feeds");
 var $entries = $("#entries");
 var feeds = {
-  loadEntries: function(url, selection) {
+  feeds: {},
+  loadEntries: function(url, selection, $feeds) {
+    $("#more").hide();
     $.getJSON(url, function(data) {
+      if(!data.objects) { 
+        alert("Error!");
+        return;
+      }
+      if(data.feeds) {
+        for(var jdx in data.feeds) {
+          feeds.updateFeed(data.feeds[jdx], $feeds);
+        }
+      }
       for(var idx = 0; idx < data.objects.length; idx++) {
         (function() {
           var entry = data.objects[idx];
@@ -15,65 +27,87 @@ var feeds = {
           $entries.append($entry);
         })();
       }
+      if(data.meta && data.meta.next) {
+        $("#more").show().attr('rel', data.meta.next);
+      }
     });
   },
-  reloadEntries: function(url) {
+  reloadEntries: function(url, $feeds) {
     $entries.empty();
-    feeds.loadEntries(url);
+    feeds.loadEntries(url, false, $feeds);
   },
-  buildFeed: function(feed, $old_feed) {
+  updateFeed: function(feed, $feeds, $old_feed) {
+    if(!$feeds) { debugger; }
     var $feed = $(Handlebars.templates['feed'](feed));
+    if(feeds.currentFeed && feed.id == feeds.currentFeed.id) {
+      $feed.addClass('active');
+    }
     $feed.click(function(event) {
       event.preventDefault();
-      feeds.selectFeed(feed, $feed);
+      feeds.selectFeed(feed, $feed, $feeds);
     });
+    var reload = !!$old_feed;
+    if(!$old_feed) {
+      $old_feed = feeds.feeds[feed.id] && feeds.feeds[feed.id].elem;
+    }
+    feeds.feeds[feed.id] = {
+      data: feed,
+      elem: $feed
+    };
     if($old_feed) {
       $old_feed.after($feed);
       $old_feed.remove();
-      $feed.click();
+      if(reload) {
+        $feed.click();
+      }
     } else {
       $feeds.append($feed);
     }
   },
-  loadFeeds: function(url, include_root) {
+  loadFeeds: function(url, $feeds, include_root) {
     if(include_root) {
       var count = $feeds.attr('data-count');
-      var name = count + " Course Feed(s)";
-      var feed = {name: name, id: "all", selected: true};
-      feeds.buildFeed(feed);
+      var name = $feeds.attr('data-title');
+      var feed = {name: name, id: "all" + $feeds.attr('id'), raw_id: "all", selected: $feeds.attr('id') == 'feeds', header: true};
+      feeds.updateFeed(feed, $feeds);
     }
     $.getJSON(url, function(data) {
+      if(!data.objects) { 
+        alert("Error!");
+        return;
+      }
       for(var idx = 0; idx < data.objects.length; idx++) {
         (function() {
           var feed = data.objects[idx];
-          $feeds.append(feeds.buildFeed(feed));
+          feeds.updateFeed(feed, $feeds);
         })();
       }
       if(data.meta && data.meta.next) {
-        feeds.loadFeeds(data.meta.next);
+        feeds.loadFeeds(data.meta.next, $feeds);
       }
     });
   },
-  selectFeed: function(feed, $feed) {
-    $feeds.find("li").removeClass('active');
+  selectFeed: function(feed, $feed, $feeds) {
+    $("#all_feeds li.active").removeClass('active');
     $feed.addClass('active');
     $("#feed_summary").remove()
-    if(feed.id != 'all') {
+    if(feed.raw_id != 'all') {
       $("h2").after(Handlebars.templates['feed_summary'](feed));
     }
-    feeds.reloadEntries("/api/v1/" + $entries.attr('rel') + "/entries.json?feed_id=" + feed.id);
+    if($feeds.hasClass('addable')) {
+      $("#feed_summary").addClass('addable');
+    }
+    feeds.reloadEntries("/api/v1/" + $feeds.attr('rel') + "/entries.json?feed_id=" + (feed.raw_id || feed.id), $feeds);
     feeds.currentFeed = feed;
-    feeds.currentFeedElem = $feed;
-    console.log(feed);
   },
   refreshCurrentFeed: function() {
     if(!feeds.currentFeed || feeds.currentFeed.id == 'all') { return; }
     $.ajax({
       type: 'POST',
       dataType: 'json',
-      url: "/api/v1/feeds/" + feeds.currentFeed.id + "/" + feeds.currentFeed.nonce + ".json",
+      url: "/api/v1/feeds/" + feeds.currentFeed.raw_feed_id + "/" + feeds.currentFeed.nonce + ".json",
       success: function(data) {
-        feeds.buildFeed(data.feed, feeds.currentFeedElem);
+        feeds.feeds[feeds.currentFeed.id].elem.click();
       },
       error: function() {
         alert("Error!");
@@ -83,15 +117,16 @@ var feeds = {
   deleteCurrentFeed: function() {
     var response = confirm("Are you sure you want to delete this feed?");
     if(!response) { return; }
+    var $feeds = feeds.feeds[feeds.currentFeed.id].elem.closest('ul');
     $.ajax({
       type: 'POST',
       data: {
         '_method': 'DELETE'
       },
       dataType: 'json',
-      url: "/api/v1/" + $entries.attr('rel') + "/feeds/" + feeds.currentFeed.id + ".json",
+      url: "/api/v1/" + $feeds.attr('rel') + "/feeds/" + feeds.currentFeed.id + ".json",
       success: function(data) {
-        feeds.currentFeedElem.remove()
+        feeds.feeds[feeds.currentFeed.id].elem.remove();
         $feeds.find(".feed:first").click();
       },
       error: function() {
@@ -100,39 +135,79 @@ var feeds = {
     });
     
   },
+  allowStudentFeeds: function(allow) {
+    var url = "/api/v1/" + $primary_feeds.attr('rel') + ".json";
+    $.ajax({
+      type: 'POST',
+      data: {
+        '_method': 'PUT', 
+        'allow_student_feeds': (allow ? "1" : "0")
+      },
+      dataType: 'json',
+      url: url,
+      success: function(data) {
+      },
+      error: function() {
+        alert("Error!");
+      }
+    });
+  },
   selectEntry: function(entry) {
     alert("LTI embed!");
     console.log(entry);
   },
-  addFeed: function(feed_url, endpoint) {
+  addFeed: function(feed_url, filter, endpoint) {
+    $("#add_feed").attr('disabled', true).addClass('disabled');
     $.ajax({
       type: 'POST',
       dataType: 'json',
       url: endpoint,
       data: {
-        url: feed_url
+        url: feed_url,
+        filter: filter
       },
       success: function(data) {
-        feeds.buildFeed(data);
+        $("#add_feed").attr('disabled', false).removeClass('disabled');
+        if(!data) {
+          alert("Feed failed to add. Please make sure it's a valid feed.");
+          return;
+        }
+        feeds.updateFeed(data, $primary_feeds);
         if(!data.callback_enabled) {
           alert("Feed added, but no callback hub found. Entries will have to be refreshed by hand");
         }
-        $feeds.find(".feed:last").click();
+        feeds.feeds[data.id].elem.click();
       },
       error: function() {
         alert("Error!");
+        $("#add_feed").attr('disabled', false).removeClass('disabled');
+      }
+    });
+  },
+  pingOldestFeed: function() {
+    $.ajax({
+      type: 'POST',
+      dataType: 'json',
+      url: "/api/v1/feeds/next.json",
+      success: function(data) {
+        $primary_feeds.find(".feed:first").click();
+      },
+      error: function() {
       }
     });
   }
 }
 $(document).ready(function() {
   feeds.selectionMode = $entries.hasClass('selection');
-  if($feeds.length) {
-    feeds.loadFeeds("/api/v1/" + $entries.attr('rel') + "/feeds.json", true);
+  feeds.pingOldestFeed();
+  if($primary_feeds.length) {
+    feeds.loadFeeds("/api/v1/" + $primary_feeds.attr('rel') + "/feeds.json", $primary_feeds, true);
   }
-  if($entries.length) {
-    feeds.loadEntries("/api/v1/" + $entries.attr('rel') + "/entries.json");
-  }
+  $("#load_user_feeds").click(function(event) {
+    event.preventDefault();
+    feeds.loadFeeds("/api/v1/users/self/feeds.json", $secondary_feeds, true);
+    $(this).hide();
+  });
   
   $(document).on('click', "#refresh_feed", function(event) {
     event.preventDefault();
@@ -144,10 +219,23 @@ $(document).ready(function() {
   });
   $("#add_feed").click(function() {
     var url = $("#feed_url").val();
-    feeds.addFeed(url, "/api/v1/" + $entries.attr('rel') + "/feeds.json");
+    var filter = $("#feed_filter").val() || null;
+    feeds.addFeed(url, filter, "/api/v1/" + $primary_feeds.attr('rel') + "/feeds.json");
   });
   $("#find_feed").click(function() {
     feeds.findFeeds("/api/v1/users/self/feeds.json");
+  });
+  $(document).on('click', "#add_to_feeds", function() {
+    feeds.addFeed(feeds.currentFeed.feed_url, feeds.currentFeed.filter, "/api/v1/" + $primary_feeds.attr('rel') + "/feeds.json");
+  });
+  $("#more_entries").click(function(event) {
+    event.preventDefault();
+    $(this).blur();
+    var $feeds = feeds.feeds[feeds.currentFeed.id].elem.closest('ul');
+    feeds.loadEntries($("#more").attr('rel'), false, $feeds);
+  });
+  $("#allow_student_feeds").change(function() {
+    feeds.allowStudentFeeds($(this).attr('checked'));
   });
 });
 
@@ -377,6 +465,11 @@ function program1(depth0,data) {
 
 function program3(depth0,data) {
   
+  
+  return "header";}
+
+function program5(depth0,data) {
+  
   var buffer = "", stack1;
   buffer += "\n      <span class=\"count\">";
   foundHelper = helpers.entry_count;
@@ -396,6 +489,16 @@ function program3(depth0,data) {
   tmp1.inverse = self.noop;
   stack1 = stack2.call(depth0, stack1, tmp1);
   if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += " ";
+  foundHelper = helpers.header;
+  stack1 = foundHelper || depth0.header;
+  stack2 = helpers['if'];
+  tmp1 = self.program(3, program3, data);
+  tmp1.hash = {};
+  tmp1.fn = tmp1;
+  tmp1.inverse = self.noop;
+  stack1 = stack2.call(depth0, stack1, tmp1);
+  if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\">\n  <a href=\"#\">";
   foundHelper = helpers.name;
   stack1 = foundHelper || depth0.name;
@@ -405,7 +508,7 @@ function program3(depth0,data) {
   foundHelper = helpers.entry_count;
   stack1 = foundHelper || depth0.entry_count;
   stack2 = helpers['if'];
-  tmp1 = self.program(3, program3, data);
+  tmp1 = self.program(5, program5, data);
   tmp1.hash = {};
   tmp1.fn = tmp1;
   tmp1.inverse = self.noop;
@@ -464,7 +567,12 @@ function program3(depth0,data) {
   tmp1.inverse = self.program(3, program3, data);
   stack1 = stack2.call(depth0, stack1, tmp1);
   if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += "\n    </div>\n    <div class=\"created\">\n      ";
+  buffer += "\n    </div>\n    <div class='feed_name'>\n      ";
+  foundHelper = helpers.feed_name;
+  stack1 = foundHelper || depth0.feed_name;
+  if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+  else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "feed_name", { hash: {} }); }
+  buffer += escapeExpression(stack1) + "\n    </div>\n    <div class=\"created\">\n      ";
   foundHelper = helpers.created;
   stack1 = foundHelper || depth0.created;
   if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
@@ -483,10 +591,31 @@ templates['feed_summary'] = template(function (Handlebars,depth0,helpers,partial
 
 function program1(depth0,data) {
   
+  var buffer = "", stack1;
+  buffer += "\n    <div class=\"filter\">filter by \"";
+  foundHelper = helpers.filter;
+  stack1 = foundHelper || depth0.filter;
+  if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+  else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "filter", { hash: {} }); }
+  buffer += escapeExpression(stack1) + "\"</div>\n  ";
+  return buffer;}
+
+function program3(depth0,data) {
+  
   
   return "auto-update ";}
 
-  buffer += "<div id=\"feed_summary\">\n  <span class=\"posts\">";
+  buffer += "<div id=\"feed_summary\">\n  ";
+  foundHelper = helpers.filter;
+  stack1 = foundHelper || depth0.filter;
+  stack2 = helpers['if'];
+  tmp1 = self.program(1, program1, data);
+  tmp1.hash = {};
+  tmp1.fn = tmp1;
+  tmp1.inverse = self.noop;
+  stack1 = stack2.call(depth0, stack1, tmp1);
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n  <span class=\"posts\">";
   foundHelper = helpers.entry_count;
   stack1 = foundHelper || depth0.entry_count;
   if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
@@ -495,7 +624,7 @@ function program1(depth0,data) {
   foundHelper = helpers.callback_enabled;
   stack1 = foundHelper || depth0.callback_enabled;
   stack2 = helpers['if'];
-  tmp1 = self.program(1, program1, data);
+  tmp1 = self.program(3, program3, data);
   tmp1.hash = {};
   tmp1.fn = tmp1;
   tmp1.inverse = self.noop;
@@ -511,6 +640,6 @@ function program1(depth0,data) {
   stack1 = foundHelper || depth0.feed_url;
   if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
   else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "feed_url", { hash: {} }); }
-  buffer += escapeExpression(stack1) + "\" target=\"_blank\">Source</a>&nbsp;&nbsp;\n    <a href=\"#\" id=\"delete_feed\">Delete</a>\n  </span>\n</div>";
+  buffer += escapeExpression(stack1) + "\" target=\"_blank\">Source</a>&nbsp;&nbsp;\n    <a href=\"#\" id=\"delete_feed\">Delete</a>\n  </span>\n  <div id=\"add_to_feeds_holder\">\n    <button class='btn btn-primary' id='add_to_feeds'>Add to course feeds</button>\n  </div>\n</div>\n";
   return buffer;});
 })();

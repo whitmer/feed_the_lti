@@ -92,14 +92,14 @@ describe 'API calls' do
       feed
       post "/api/v1/feeds/#{@feed.id}x/#{@feed.nonce}.json"
       last_response.should be_ok
-      last_response.body.should == {:found => false, :new_entries => 0, :feed => nil}.to_json
+      last_response.body.should == {:found => false, :new_entries => 0}.to_json
     end
     
     it "should error if invlaid nonce" do
       feed
       post "/api/v1/feeds/#{@feed.id}/#{@feed.nonce}x.json"
       last_response.should be_ok
-      last_response.body.should == {:found => false, :new_entries => 0, :feed => nil}.to_json
+      last_response.body.should == {:found => false, :new_entries => 0}.to_json
     end
     
     it "should update feed on valid request" do
@@ -107,7 +107,7 @@ describe 'API calls' do
       Feed.any_instance.should_receive(:check_for_entries).and_return(5)
       post "/api/v1/feeds/#{@feed.id}/#{@feed.nonce}.json"
       last_response.should be_ok
-      last_response.body.should == {:found => true, :new_entries => 5, :feed => @feed.as_json}.to_json
+      last_response.body.should == {:found => true, :new_entries => 5}.to_json
     end
   end
   

@@ -11,6 +11,11 @@ function program1(depth0,data) {
 
 function program3(depth0,data) {
   
+  
+  return "header";}
+
+function program5(depth0,data) {
+  
   var buffer = "", stack1;
   buffer += "\n      <span class=\"count\">";
   foundHelper = helpers.entry_count;
@@ -30,6 +35,16 @@ function program3(depth0,data) {
   tmp1.inverse = self.noop;
   stack1 = stack2.call(depth0, stack1, tmp1);
   if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += " ";
+  foundHelper = helpers.header;
+  stack1 = foundHelper || depth0.header;
+  stack2 = helpers['if'];
+  tmp1 = self.program(3, program3, data);
+  tmp1.hash = {};
+  tmp1.fn = tmp1;
+  tmp1.inverse = self.noop;
+  stack1 = stack2.call(depth0, stack1, tmp1);
+  if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\">\n  <a href=\"#\">";
   foundHelper = helpers.name;
   stack1 = foundHelper || depth0.name;
@@ -39,7 +54,7 @@ function program3(depth0,data) {
   foundHelper = helpers.entry_count;
   stack1 = foundHelper || depth0.entry_count;
   stack2 = helpers['if'];
-  tmp1 = self.program(3, program3, data);
+  tmp1 = self.program(5, program5, data);
   tmp1.hash = {};
   tmp1.fn = tmp1;
   tmp1.inverse = self.noop;
@@ -98,7 +113,12 @@ function program3(depth0,data) {
   tmp1.inverse = self.program(3, program3, data);
   stack1 = stack2.call(depth0, stack1, tmp1);
   if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += "\n    </div>\n    <div class=\"created\">\n      ";
+  buffer += "\n    </div>\n    <div class='feed_name'>\n      ";
+  foundHelper = helpers.feed_name;
+  stack1 = foundHelper || depth0.feed_name;
+  if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+  else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "feed_name", { hash: {} }); }
+  buffer += escapeExpression(stack1) + "\n    </div>\n    <div class=\"created\">\n      ";
   foundHelper = helpers.created;
   stack1 = foundHelper || depth0.created;
   if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
@@ -117,10 +137,31 @@ templates['feed_summary'] = template(function (Handlebars,depth0,helpers,partial
 
 function program1(depth0,data) {
   
+  var buffer = "", stack1;
+  buffer += "\n    <div class=\"filter\">filter by \"";
+  foundHelper = helpers.filter;
+  stack1 = foundHelper || depth0.filter;
+  if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+  else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "filter", { hash: {} }); }
+  buffer += escapeExpression(stack1) + "\"</div>\n  ";
+  return buffer;}
+
+function program3(depth0,data) {
+  
   
   return "auto-update ";}
 
-  buffer += "<div id=\"feed_summary\">\n  <span class=\"posts\">";
+  buffer += "<div id=\"feed_summary\">\n  ";
+  foundHelper = helpers.filter;
+  stack1 = foundHelper || depth0.filter;
+  stack2 = helpers['if'];
+  tmp1 = self.program(1, program1, data);
+  tmp1.hash = {};
+  tmp1.fn = tmp1;
+  tmp1.inverse = self.noop;
+  stack1 = stack2.call(depth0, stack1, tmp1);
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n  <span class=\"posts\">";
   foundHelper = helpers.entry_count;
   stack1 = foundHelper || depth0.entry_count;
   if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
@@ -129,7 +170,7 @@ function program1(depth0,data) {
   foundHelper = helpers.callback_enabled;
   stack1 = foundHelper || depth0.callback_enabled;
   stack2 = helpers['if'];
-  tmp1 = self.program(1, program1, data);
+  tmp1 = self.program(3, program3, data);
   tmp1.hash = {};
   tmp1.fn = tmp1;
   tmp1.inverse = self.noop;
@@ -145,6 +186,6 @@ function program1(depth0,data) {
   stack1 = foundHelper || depth0.feed_url;
   if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
   else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "feed_url", { hash: {} }); }
-  buffer += escapeExpression(stack1) + "\" target=\"_blank\">Source</a>&nbsp;&nbsp;\n    <a href=\"#\" id=\"delete_feed\">Delete</a>\n  </span>\n</div>";
+  buffer += escapeExpression(stack1) + "\" target=\"_blank\">Source</a>&nbsp;&nbsp;\n    <a href=\"#\" id=\"delete_feed\">Delete</a>\n  </span>\n  <div id=\"add_to_feeds_holder\">\n    <button class='btn btn-primary' id='add_to_feeds'>Add to course feeds</button>\n  </div>\n</div>\n";
   return buffer;});
 })();

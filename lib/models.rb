@@ -48,23 +48,6 @@ class Feed
     self.save
     entries.length
   end
-  
-  def as_json
-    {
-      :id => self.id,
-      :last_checked => (self.last_checked_at && self.last_checked_at.strftime("%Y-%m-%d %l:%M%P")),
-      :name => self.name,
-      :feed_url => self.feed_url,
-      :feed_type => self.feed_type,
-      :entry_count => self.entry_count || 0,
-      :callback_enabled => self.callback_enabled,
-      :nonce => self.nonce
-    }
-  end
-  
-  def to_json
-    as_json.to_json
-  end
 end
 
 class Context
@@ -80,14 +63,17 @@ class Context
   has n, :feeds, :through => :context_feeds, :order => :name
   
   def feed_ids
-    self.context_feeds.map(&:feed_id).uniq
+    self.context_feeds.map(&:id).uniq
   end
   
   def results_for(page, feed_id='all')
     entries = []
     feeds = self.context_feeds
+    if feed_id != 'all'
+      feeds = feeds.select{|f| f.id == feed_id.to_i }
+    end
     filters = {}
-    feed_ids = feed_id == 'all' ? feeds.map(&:feed_id) : [feed_id]
+    feed_ids = feeds.map(&:feed_id)
     feeds.each{|f| filters[f.feed_id] = f.filter if feed_ids.include?(f.feed_id) }
     total = 0
     FeedEntry.all(:limit => 26, :offset => (page * 25), :feed_id => feed_ids, :order => :created_at.desc).each do |entry|
@@ -99,12 +85,12 @@ class Context
       :objects => entries[0, 25],
       :context => self.as_json
     }
+    res[:feeds] = feeds.map(&:as_json)
     res[:next] = total > 25
     res
   end
   
   def create_feed(url, filter, user_id, protocol_and_host)
-    cf = ContextFeed.new(:context => self)
     feed = Feed.first_or_new(:feed_url => url) if url
     xml = FeedHandler.get_xml(feed.feed_url) if feed && feed.feed_url
     feed.feed_type = FeedHandler.identify_feed(xml) if xml
@@ -115,11 +101,11 @@ class Context
     feed.save
     feed.callback_enabled = FeedHandler.register_callback(feed, xml, protocol_and_host) if !feed.callback_enabled
     feed.check_for_entries(xml) unless feed.last_checked_at && feed.last_checked_at > (Time.now - 60).to_datetime
-    cf.feed = feed
+    cf = ContextFeed.first_or_new(:context_id => self.id, :feed_id => feed.id, :filter => filter)
     cf.user_id = user_id
     cf.filter = filter if filter && filter.length > 0
     cf.save
-    feed
+    cf
   end
 
   def as_json
@@ -153,6 +139,25 @@ class ContextFeed
     end
     self.destroy
   end
+  
+  def as_json
+    feed = self.feed
+    {
+      :id => self.id,
+      :raw_feed_id => self.feed_id,
+      :last_checked => (feed.last_checked_at && feed.last_checked_at.strftime("%Y-%m-%d %l:%M%P")),
+      :name => feed.name,
+      :feed_url => feed.feed_url,
+      :feed_type => feed.feed_type,
+      :entry_count => feed.entry_count || 0,
+      :callback_enabled => feed.callback_enabled,
+      :nonce => feed.nonce
+    }
+  end
+  
+  def to_json
+    as_json.to_json
+  end
 end
 
 class FeedEntry
@@ -180,7 +185,8 @@ class FeedEntry
       :short_html => self.short_html,
       :created => self.created_at && self.created_at.strftime("%Y-%m-%d %l:%M%P"),
       :author_name => self.author_name,
-      :feed_id => self.feed_id
+      :raw_feed_id => self.feed_id,
+      :feed_name => self.feed.name
     }
   end
   

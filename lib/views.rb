@@ -13,6 +13,7 @@ module Sinatra
     get "/courses/:course_id/feeds" do
       return error("Not authorized") unless participant?(params[:course_id])
       @course = Context.first(:context_type => 'course', :id => params['course_id'])
+      @user = Context.first(:context_type => 'user', :id => session['user_id'])
       erb :course_feeds
     end
     

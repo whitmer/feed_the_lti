@@ -1,16 +1,42 @@
-<div class="row <%= 'deletable' if admin?(@course.id) %>">
+<% addable = admin?(@course.id) || @course.allow_student_feeds %>
+<div class="row <%= 'deletable' if admin?(@course.id) %>" id="all_feeds">
   <div class="span3">
-    <ul id="feeds" rel="courses/<%= @course.id %>" data-count="<%= @course.feed_ids.length %>" class="nav nav-pills nav-stacked">
+    <ul id="feeds" rel="courses/<%= @course.id %>" data-title="<%= @course.feed_ids.length %> Course Feed(s)" class="nav nav-pills nav-stacked">
     </ul>
-    <% if admin?(@course.id) || @course.allow_student_feeds %>
-      <input type="text" id="feed_url" placeholder="new feed URL" value="" class="span3"/>
-      <button class='btn' id="add_feed"><span class='icon icon-plus'></span> Feed</button>
-      <button class='btn' id="find_feed"><span class='icon icon-search'></span> Feed</button>
+    <% if addable %>
+      <div class='form-inline' id='add_feed_form'>
+        <label style="padding-left: 10px;">
+          <input type="checkbox" id="allow_student_feeds" <%= 'checked' if @course.allow_student_feeds %> value="1"/>
+          <span style="margin-top: 5px;">Let students add course feeds</span>
+        </label>
+        <div style="margin-top: 10px;">
+          <h3>Add New Feed</h3>
+        <input type="text" id="feed_url" placeholder="new feed URL" value="" class="span3"/>
+        <label style="margin: 5px 0;">
+          Filter: <input type="text" id="feed_filter" placeholder="blank for none" value="" class="span2"/>
+        </label><br/>
+        <button class='btn' id="add_feed"><span class='icon icon-plus'></span> Course Feed</button>
+        </div>
+      </div>
+    <% end %>
+    <% if @user && @user.context_feeds.count > 0 %>
+      <div style="padding-top: 30px;">
+        <a href="#" id="load_user_feeds">Load User Feeds</a>
+        <ul id="user_feeds" rel="users/self" class="nav nav-pills nav-stacked <%= 'addable' if addable %>" data-title="User Feed(s)">
+        </ul>
+      </div>
     <% end %>
   </div>
   <div class="span9">
     <h2>Entries for <%= @course.name %></h2>
-    <div id="entries" rel="courses/<%= @course.id %>">
+    <div id="entries"">
+    </div>
+    <div id="more" style="display: none;">
+      <ul class="pager">
+      <li class="previous">
+        <a href="#" id="more_entries">&darr; More</a>
+      </li>
+      </ul>
     </div>
   </div>
 </div>

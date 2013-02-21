@@ -9,7 +9,6 @@ module FeedHandler
     request = Net::HTTP::Get.new(uri.request_uri)
     response = http.request(request) rescue nil
     return FeedHandler.empty_xml unless response
-    puts response.body
     xml = Nokogiri::XML(response.body) rescue FeedHandler.empty_xml
     xml = FeedHandler.empty_xml if xml.css("rss,feed").length == 0
     xml
@@ -51,7 +50,7 @@ module FeedHandler
   end
   
   def self.identify_feed(xml)
-    if xml.children[0].name == 'feed'
+    if xml.children.detect{|n| n.name == 'feed' }
       'atom'
     elsif xml.css("rss[version='2.0']").length > 0
       'rss2'
@@ -80,7 +79,7 @@ module FeedHandler
         :guid => entry.css('id')[0].try(:content),
         :title => sanitize_and_truncate(entry.css('title')[0].try(:inner_html) || "No Title"),
         :url => (entry.css('link')[0] || {})['href'],
-        :short_html => sanitize_and_truncate(html),
+        :short_html => sanitize_and_truncate(CGI.unescape_html(html || "")),
         :author_name => entry.css('author name')[0].try(:content) || "Unknown",
         :author_email => entry.css('author email')[0].try(:content)
       }

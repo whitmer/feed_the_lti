@@ -1,4 +1,7 @@
 <div id="feed_summary">
+  {{#if filter }}
+    <div class="filter">filter by "{{ filter }}"</div>
+  {{/if}}
   <span class="posts">{{entry_count}} posts</span>
   <span class="last_checked">{{#if callback_enabled}}auto-update {{/if}}checked {{last_checked}}</span>
   <span class="links">
@@ -6,4 +9,7 @@
     <a href="{{ feed_url }}" target="_blank">Source</a>&nbsp;&nbsp;
     <a href="#" id="delete_feed">Delete</a>
   </span>
+  <div id="add_to_feeds_holder">
+    <button class='btn btn-primary' id='add_to_feeds'>Add to course feeds</button>
+  </div>
 </div>

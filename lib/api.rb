@@ -3,25 +3,28 @@ require 'sinatra/base'
 module Sinatra
   module Api
     # get feed entries for the specified course, possibly filtered to a specific feed id
-    get "/api/v1/courses/:course_id/entries.json" do
-      return {:error => "not authorized"}.to_json unless participant?(params['course_id'])
-      course = Context.first(:context_type => 'course', :id => params['course_id'])
+    get "/api/v1/:context_type/:context_id/entries.json" do
+      context_type = params['context_type'].sub(/s$/, '')
+      params['context_id'] = session['user_id'] if context_type == 'user' && session['user_id'] && params['context_id'] == 'self'
+      return error_json("not authorized") if context_type == 'course' && !participant?(params['context_id'])
+      context = Context.first(:context_type => context_type, :id => params['context_id'])
+      return error_json("not found") if !context
       params['feed_id'] ||= 'all'
       page = params['page'].to_i
-      entries = course.results_for(page, params['feed_id'])
+      entries = context.results_for(page, params['feed_id'])
       if entries.delete(:next)
-        entries[:meta] = {:next => "/api/v1/courses/#{course.id}/entries.json?page=#{page + 1}&feed_id=#{params['feed_id']}"}
+        entries[:meta] = {:next => "/api/v1/#{params['context_type']}/#{context.id}/entries.json?page=#{page + 1}&feed_id=#{params['feed_id']}"}
       end
       if page > 0
         entries[:meta] ||= {}
-        entries[:meta][:previous] = "/api/v1/courses/#{course.id}/entries.json?page=#{page - 1}&feed_id=#{params['feed_id']}"
+        entries[:meta][:previous] = "/api/v1/#{params['context_type']}/#{context.id}/entries.json?page=#{page - 1}&feed_id=#{params['feed_id']}"
       end
       entries.to_json
     end
     
     # pubsubhubbub init check
-    get "/api/v1/feeds/:feed_id/:nonce.json" do
-      feed = Feed.first(:id => params['feed_id'], :nonce => params['nonce'])
+    get "/api/v1/feeds/:raw_feed_id/:nonce.json" do
+      feed = Feed.first(:id => params['raw_feed_id'], :nonce => params['nonce'])
       if params['hub.mode'] == 'unsubscribe'
         feed.disable if feed
       end
@@ -32,80 +35,94 @@ module Sinatra
       end
     end
     
+    # hacky alternative to background jobs
+    post "/api/v1/feeds/next.json" do
+      feed = Feed.first(:last_checked_at.lt => (Time.now - 3600), :order => :last_checked_at.desc)
+      new_entries = feed.check_for_entries if feed
+      {:found => !!feed, :new_entries => (new_entries || 0)}.to_json
+    end
+    
     # pubsubhubbub callback
-    post "/api/v1/feeds/:feed_id/:nonce.json" do
+    post "/api/v1/feeds/:raw_feed_id/:nonce.json" do
       # TODO: return X-Hub-On-Behalf-Of (approximate # of users)
-      feed = Feed.first(:id => params['feed_id'], :nonce => params['nonce'])
+      feed = Feed.first(:id => params['raw_feed_id'], :nonce => params['nonce'])
       # TODO: rate limit feed checks
       new_entries = feed.check_for_entries if feed
-      {:found => !!feed, :new_entries => (new_entries || 0), :feed => (feed && feed.as_json)}.to_json
+      {:found => !!feed, :new_entries => (new_entries || 0)}.to_json
     end
     
     # get feed entries for the specified user, possibly filtered to a specific feed id
     get "/api/v1/users/:user_id/entries.json" do
       params['user_id'] = session['user_id'] if params['user_id'] == 'self'
-      return error("Session required") unless session['user_id']
-      return error("Not authorized") unless session['user_id'] == params['user_id']
+      return error_json("session required") unless session['user_id']
+      return error_json("not authorized") unless session['user_id'] == params['user_id']
     end
     
+    # add a new feed to the course
     post "/api/v1/courses/:course_id/feeds.json" do
       course = Context.first(:context_type => 'course', :id => params['course_id'])
       user = Context.first(:context_type => 'user', :id => session['user_id']) if session['user_id']
-      return {:error => "not authorized"}.to_json unless admin?(params['course_id']) || (course && course.allow_student_feeds)
-      return {:error => "not found"}.to_json unless course
+      return error_json("not authorized") unless admin?(params['course_id']) || (course && course.allow_student_feeds)
+      return error_json("not found") unless course
       feed = course.create_feed(params['url'], params['filter'], session['user_id'], "#{protocol}://#{request.host_with_port}")
       # tie the feed to the user as well
       user.create_feed(params['url'], params['filter'], session['user_id'], "#{protocol}://#{request.host_with_port}") if user
       feed.to_json
     end
     
-    delete "/api/v1/courses/:course_id/feeds/:feed_id.json" do
+    # update course settings
+    put "/api/v1/courses/:course_id.json" do
       course = Context.first(:context_type => 'course', :id => params['course_id'])
-      cf = ContextFeed.first(:context_id => course.id, :feed_id => params['feed_id'], :user_id => session['user_id']) if course && session['user_id']
+      return error_json("not authorized") unless admin?(params['course_id'])
+      return error_json("not found") unless course
+      course.allow_student_feeds = params['allow_student_feeds'] == '1' if params['allow_student_feeds']
+      course.save
+      course.to_json
+    end
+    
+    # delete a feed from the course
+    delete "/api/v1/:context_type/:context_id/feeds/:feed_id.json" do
+      context_type = params['context_type'].sub(/s$/, '')
+      params['context_id'] = session['user_id'] if context_type == 'user' && session['user_id'] && params['context_id'] == 'self'
+      context = Context.first(:context_type => context_type, :id => params['context_id'])
+      cf = ContextFeed.first(:context => context.id, :id => params['feed_id'], :user_id => session['user_id']) if context && session['user_id']
       user = Context.first(:context_type => 'user', :id => session['user_id']) if session['user_id']
-      return {:error => "not authorized"}.to_json unless admin?(params['course_id']) || cf
-      cf ||= ContextFeed.first(:context_id => course.id, :feed_id => params['feed_id']) if course
-      return {:error => "not found"}.to_json unless course && cf
+      return error_json("not authorized") if context_type == 'course' && (!admin?(params['context_id']) || cf)
+      return error_json("not authorized") if context_type == 'user' && params['context_id'] != session['user_id']
+      cf ||= ContextFeed.first(:context_id => context.id, :id => params['feed_id']) if context
+      return error_json("not found") unless context && cf
       cf.delete_feed
       {:deleted => true}.to_json
     end
     
-    get "/api/v1/courses/:course_id/feeds.json" do
-      course = Context.first(:context_type => 'course', :id => params['course_id'])
-      return {:error => "not authorized"}.to_json unless admin?(params['course_id']) || (course && course.allow_student_feeds)
-      return {:error => "not found"}.to_json unless course
+    # get all feeds for the course or user
+    get "/api/v1/:context_type/:context_id/feeds.json" do
+      context_type = params['context_type'].sub(/s$/, '')
+      params['context_id'] = session['user_id'] if params['context_id'] == 'self' && session['user_id'] && context_type == 'user'
+      context = Context.first(:context_type => context_type, :id => params['context_id'])
+      return error_json("not authorized") if context_type == 'course' && !participant?(params['context_id'])
+      return error_json("session required") if !session['user_id']
+      return error_json("not authorized") if context_type == 'user' && session['user_id'] != params['context_id']
+      return error_json("not found") unless context
       page = params['page'].to_i
-      feeds = course.feeds.all(:limit => 26, :offset => (page * 25))
+      feeds = context.context_feeds.all(:limit => 26, :offset => (page * 25))
       res = {
         :objects => feeds[0, 25].map(&:as_json)
       }
       if feeds.length > 25
-        res[:meta] = {:next => "/api/v1/courses/#{params['course_id']}/feeds.json?page=#{page + 1}"}
+        res[:meta] = {:next => "/api/v1/#{params['context_type']}/#{params['context_id']}/feeds.json?page=#{page + 1}"}
       end
       if page > 0
         res[:meta] ||= {}
-        res[:meta][:previous] = "/api/v1/courses/#{params['course_id']}/feeds.json?page=#{page - 1}"
+        res[:meta][:previous] = "/api/v1/#{params['context_type']}/#{params['context_id']}/feeds.json?page=#{page - 1}"
       end
       res.to_json
     end
     
-    get "/api/v1/users/:user_id/feeds.json" do
-      params['user_id'] = session['user_id'] if params['user_id'] == 'self'
-      return error("Session required") unless session['user_id']
-      return error("Not authorized") unless session['user_id'] == params['user_id']
-    end
-    
-    # get data on a specific feed
-    get "/api/v1/feeds/:id.json" do
-    end
-    
-    # create a new feed
-    post "/api/v1/feeds.json" do
-      # check if it already exists first. if so, just tie to existing feed
-      # include filter at the context level
-    end
-    
     helpers do 
+      def error_json(str)
+        {:error => str}.to_json
+      end
     end
   end
   

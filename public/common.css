@@ -4,10 +4,14 @@ body {
 .desc {
   white-space: pre-line;
 }
-#feeds .feed .count{
+.feed .count{
   display: block;
   font-size: 10px;
   padding-left: 15px;
+}
+.feed.header a {
+  font-weight: bold;
+  font-size: 16px;
 }
 #feed_summary {
   margin-bottom: 5px;
@@ -24,6 +28,15 @@ body {
 #feed_summary .delete {
   display: none;
 }
+#feed_summary #add_to_feeds_holder {
+  display: none;
+}
+#feed_summary.addable #add_to_feeds_holder {
+  display: block;
+}
+#add_feed_form {
+  margin-top: -15px;
+}
 .row.deletable #feed_summary .delete {
   display: inline;
 }
@@ -34,6 +47,11 @@ body {
 }
 .entry .author {
   float: left;
+  color: #888;
+}
+.entry .feed_name {
+  float: left;
+  padding-left: 10px;
   color: #888;
 }
 .entry .created {

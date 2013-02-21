@@ -34,14 +34,14 @@ describe 'Data models' do
           'url' => 'http://example.com/feed.xml'
         }
         FeedHandler.should_receive(:get_xml).with(params['url']).and_return(Nokogiri::XML(atom_example))
-        feed = @course.create_feed(params['url'], nil, 1, "http://example.com")
+        cf = @course.create_feed(params['url'], nil, 1, "http://example.com")
+        feed = cf.feed
         feed.should_not be_nil
         feed.feed_url.should == params['url']
         feed.name.should == "Example Feed"
         feed.callback_enabled.should == false
         feed.entry_count.should == 2
         feed.feed_entries.count.should == 2
-        cf = ContextFeed.last
         cf.context_id.should == @course.id
         cf.feed_id.should == feed.id
         cf.filter.should be_nil
@@ -68,14 +68,14 @@ describe 'Data models' do
         }
         FeedHandler.should_receive(:get_xml).with(params['url']).and_return(Nokogiri::XML(atom_example(true)))
         Net::HTTP.any_instance.should_receive(:request).and_return(OpenStruct.new({:code => 202}))
-        feed = @course.create_feed(params['url'], nil, nil, "http://example.com")
+        cf = @course.create_feed(params['url'], nil, nil, "http://example.com")
+        feed = cf.feed
         feed.should_not be_nil
         feed.feed_url.should == params['url']
         feed.name.should == "Example Feed"
         feed.callback_enabled.should == true
         feed.entry_count.should == 2
         feed.feed_entries.count.should == 2
-        cf = ContextFeed.last
         cf.context_id.should == @course.id
         cf.feed_id.should == feed.id
         cf.filter.should be_nil

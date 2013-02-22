@@ -1,7 +1,11 @@
 <li class="feed {{#if selected}}active{{/if}} {{#if header}}header{{/if}}">
   <a href="#">{{ name }}
     {{#if entry_count }}
-      <span class="count">{{ entry_count }} entries</span>
+      {{#if filter }}
+        <span class="count">filtered {{ entry_count }} entries by "{{ filter }}"</span>
+      {{else}}
+        <span class="count">{{ entry_count }} entries</span>
+      {{/if}}
     {{/if}}
   </a>
 </li>

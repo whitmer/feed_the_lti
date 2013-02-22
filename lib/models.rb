@@ -35,7 +35,7 @@ class Feed
     entries = []
     FeedHandler.parse_entries(xml).each do |e|
       entry = FeedEntry.first_or_new(:feed_id => self.id, :guid => e[:guid])
-      entry.title = e[:title]
+      entry.title = (e[:title] || "")[0, 50]
       entry.url = e[:url]
       entry.author_name = e[:author_name]
       entry.short_html = e[:short_html]
@@ -148,6 +148,7 @@ class ContextFeed
       :last_checked => (feed.last_checked_at && feed.last_checked_at.strftime("%Y-%m-%d %l:%M%P")),
       :name => feed.name,
       :feed_url => feed.feed_url,
+      :filter => self.filter,
       :feed_type => feed.feed_type,
       :entry_count => feed.entry_count || 0,
       :callback_enabled => feed.callback_enabled,

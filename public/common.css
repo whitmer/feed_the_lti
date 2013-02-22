@@ -19,8 +19,8 @@ body {
   margin-top: -5px;
   color: #888;
 }
-#feed_summary .last_checked {
-  padding-left: 10px;
+#feed_summary .posts {
+  padding-right: 10px;
 }
 #feed_summary .links {
   padding-left: 20px;

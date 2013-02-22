@@ -16,13 +16,44 @@ function program3(depth0,data) {
 
 function program5(depth0,data) {
   
+  var buffer = "", stack1, stack2;
+  buffer += "\n      ";
+  foundHelper = helpers.filter;
+  stack1 = foundHelper || depth0.filter;
+  stack2 = helpers['if'];
+  tmp1 = self.program(6, program6, data);
+  tmp1.hash = {};
+  tmp1.fn = tmp1;
+  tmp1.inverse = self.program(8, program8, data);
+  stack1 = stack2.call(depth0, stack1, tmp1);
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n    ";
+  return buffer;}
+function program6(depth0,data) {
+  
   var buffer = "", stack1;
-  buffer += "\n      <span class=\"count\">";
+  buffer += "\n        <span class=\"count\">filtered ";
   foundHelper = helpers.entry_count;
   stack1 = foundHelper || depth0.entry_count;
   if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
   else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "entry_count", { hash: {} }); }
-  buffer += escapeExpression(stack1) + " entries</span>\n    ";
+  buffer += escapeExpression(stack1) + " entries by \"";
+  foundHelper = helpers.filter;
+  stack1 = foundHelper || depth0.filter;
+  if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+  else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "filter", { hash: {} }); }
+  buffer += escapeExpression(stack1) + "\"</span>\n      ";
+  return buffer;}
+
+function program8(depth0,data) {
+  
+  var buffer = "", stack1;
+  buffer += "\n        <span class=\"count\">";
+  foundHelper = helpers.entry_count;
+  stack1 = foundHelper || depth0.entry_count;
+  if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+  else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "entry_count", { hash: {} }); }
+  buffer += escapeExpression(stack1) + " entries</span>\n      ";
   return buffer;}
 
   buffer += "<li class=\"feed ";
@@ -138,7 +169,12 @@ templates['feed_summary'] = template(function (Handlebars,depth0,helpers,partial
 function program1(depth0,data) {
   
   var buffer = "", stack1;
-  buffer += "\n    <div class=\"filter\">filter by \"";
+  buffer += "\n    <div class=\"filter\">filtered ";
+  foundHelper = helpers.entry_count;
+  stack1 = foundHelper || depth0.entry_count;
+  if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+  else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "entry_count", { hash: {} }); }
+  buffer += escapeExpression(stack1) + " entries by \"";
   foundHelper = helpers.filter;
   stack1 = foundHelper || depth0.filter;
   if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
@@ -147,6 +183,17 @@ function program1(depth0,data) {
   return buffer;}
 
 function program3(depth0,data) {
+  
+  var buffer = "", stack1;
+  buffer += "\n    <span class=\"posts\">";
+  foundHelper = helpers.entry_count;
+  stack1 = foundHelper || depth0.entry_count;
+  if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
+  else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "entry_count", { hash: {} }); }
+  buffer += escapeExpression(stack1) + " entries</span>\n  ";
+  return buffer;}
+
+function program5(depth0,data) {
   
   
   return "auto-update ";}
@@ -158,19 +205,14 @@ function program3(depth0,data) {
   tmp1 = self.program(1, program1, data);
   tmp1.hash = {};
   tmp1.fn = tmp1;
-  tmp1.inverse = self.noop;
+  tmp1.inverse = self.program(3, program3, data);
   stack1 = stack2.call(depth0, stack1, tmp1);
   if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += "\n  <span class=\"posts\">";
-  foundHelper = helpers.entry_count;
-  stack1 = foundHelper || depth0.entry_count;
-  if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
-  else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "entry_count", { hash: {} }); }
-  buffer += escapeExpression(stack1) + " posts</span>\n  <span class=\"last_checked\">";
+  buffer += "\n  <span class=\"last_checked\">";
   foundHelper = helpers.callback_enabled;
   stack1 = foundHelper || depth0.callback_enabled;
   stack2 = helpers['if'];
-  tmp1 = self.program(3, program3, data);
+  tmp1 = self.program(5, program5, data);
   tmp1.hash = {};
   tmp1.fn = tmp1;
   tmp1.inverse = self.noop;

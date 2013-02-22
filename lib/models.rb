@@ -175,7 +175,7 @@ class FeedEntry
   
   def matches_filter?(filter)
     return true unless filter
-    return (self.title || "").match(filter)
+    return (self.title || "").match(Regexp.new(filter, "i"))
   end
   
   def as_json

@@ -30,6 +30,9 @@ var feeds = {
       if(data.meta && data.meta.next) {
         $("#more").show().attr('rel', data.meta.next);
       }
+      if(data.objects.length == 0) {
+        $("#more_entries").click();
+      }
     });
   },
   reloadEntries: function(url, $feeds) {

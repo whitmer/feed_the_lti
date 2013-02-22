@@ -22,6 +22,7 @@ require 'dm-migrations'
 require 'nokogiri'
 require 'oauth/request_proxy/rack_request'
 require 'ims/lti'
+require 'feedzirra'
 
 require './lib/api.rb'
 require './lib/auth.rb'
@@ -34,6 +35,8 @@ disable :protection
 # enable sessions so we can remember the launch info between http requests, as
 # the user takes the assessment
 enable :sessions
+
+Feedzirra::Feed.add_common_feed_element(:link, :as => :hub, :value => :href, :with => {:rel => "hub"})
 
 def protocol
   ENV['RACK_ENV'] == 'production' ? "https" : "http"

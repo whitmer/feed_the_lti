@@ -12,6 +12,7 @@ gem 'dm-aggregates'
 gem 'dm-postgres-adapter'
 gem 'erubis'
 gem 'sanitize'
+gem 'feedzirra'
 
 group :development do
     gem 'dm-sqlite-adapter'

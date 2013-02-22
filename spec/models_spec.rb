@@ -33,7 +33,7 @@ describe 'Data models' do
         params = {
           'url' => 'http://example.com/feed.xml'
         }
-        FeedHandler.should_receive(:get_xml).with(params['url']).and_return(Nokogiri::XML(atom_example))
+        FeedHandler.should_receive(:get_feed).with(params['url']).and_return(Feedzirra::Feed.parse(atom_example))
         cf = @course.create_feed(params['url'], nil, 1, "http://example.com")
         feed = cf.feed
         feed.should_not be_nil
@@ -52,7 +52,7 @@ describe 'Data models' do
         params = {
           'url' => 'http://example.com/feed.xml'
         }
-        FeedHandler.should_receive(:get_xml).with(params['url']).and_return(Nokogiri::XML(atom_example))
+        FeedHandler.should_receive(:get_feed).with(params['url']).and_return(Feedzirra::Feed.parse(atom_example))
         feed = @course.create_feed(params['url'], 'friends', nil, "http://example.com")
         feed.should_not be_nil
         cf = ContextFeed.last
@@ -66,7 +66,7 @@ describe 'Data models' do
         params = {
           'url' => 'http://example.com/feed.xml'
         }
-        FeedHandler.should_receive(:get_xml).with(params['url']).and_return(Nokogiri::XML(atom_example(true)))
+        FeedHandler.should_receive(:get_feed).with(params['url']).and_return(Feedzirra::Feed.parse(atom_example(true)))
         Net::HTTP.any_instance.should_receive(:request).and_return(OpenStruct.new({:code => 202}))
         cf = @course.create_feed(params['url'], nil, nil, "http://example.com")
         feed = cf.feed
@@ -86,7 +86,7 @@ describe 'Data models' do
         params = {
           'url' => 'http://example.com/feed.xml'
         }
-        FeedHandler.should_receive(:get_xml).with(params['url']).and_return(nil)
+        FeedHandler.should_receive(:get_feed).with(params['url']).and_return(nil)
         feed = @course.create_feed(params['url'], nil, nil, "http://example.com")
         feed.should be_nil
       end

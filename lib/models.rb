@@ -28,12 +28,12 @@ class Feed
     # TODO: add support for unsubscription according to pubsubhubbub spec
   end
   
-  def check_for_entries(xml=nil)
-    if !xml
-      xml = FeedHandler.get_xml(self.feed_url)
+  def check_for_entries(feed_data=nil)
+    if !feed_data
+      feed_data = FeedHandler.get_feed(self.feed_url)
     end
     entries = []
-    FeedHandler.parse_entries(xml).each do |e|
+    FeedHandler.parse_entries(feed_data).each do |e|
       entry = FeedEntry.first_or_new(:feed_id => self.id, :guid => e[:guid])
       entry.title = (e[:title] || "")[0, 50]
       entry.url = e[:url]
@@ -92,15 +92,15 @@ class Context
   
   def create_feed(url, filter, user_id, protocol_and_host)
     feed = Feed.first_or_new(:feed_url => url) if url
-    xml = FeedHandler.get_xml(feed.feed_url) if feed && feed.feed_url
-    feed.feed_type = FeedHandler.identify_feed(xml) if xml
+    feed_data = FeedHandler.get_feed(feed.feed_url) if feed && feed.feed_url
+    feed.feed_type = FeedHandler.identify_feed(feed_data) if feed_data
     if !feed || !feed.feed_type || feed.feed_type == 'unknown'
       return nil
     end
-    feed.name = FeedHandler.feed_name(xml) || "Feed"
+    feed.name = FeedHandler.feed_name(feed_data) || "Feed"
     feed.save
-    feed.callback_enabled = FeedHandler.register_callback(feed, xml, protocol_and_host) if !feed.callback_enabled
-    feed.check_for_entries(xml) unless feed.last_checked_at && feed.last_checked_at > (Time.now - 60).to_datetime
+    feed.callback_enabled = FeedHandler.register_callback(feed, feed_data, protocol_and_host) if !feed.callback_enabled
+    feed.check_for_entries(feed_data) unless feed.last_checked_at && feed.last_checked_at > (Time.now - 60).to_datetime
     cf = ContextFeed.first_or_new(:context_id => self.id, :feed_id => feed.id, :filter => filter)
     cf.user_id = user_id
     cf.filter = filter if filter && filter.length > 0

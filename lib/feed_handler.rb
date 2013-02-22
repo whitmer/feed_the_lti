@@ -1,26 +1,25 @@
 require 'sanitize'
+require 'feedzirra'
 
 module FeedHandler
-  def self.get_xml(url)
-    uri = URI.parse(url) rescue nil
-    return FeedHandler.empty_xml unless uri && uri.respond_to?(:request_uri)
-    http = Net::HTTP.new(uri.host, uri.port)
-    http.use_ssl = (uri.scheme == 'https')
-    request = Net::HTTP::Get.new(uri.request_uri)
-    response = http.request(request) rescue nil
-    return FeedHandler.empty_xml unless response
-    xml = Nokogiri::XML(response.body) rescue FeedHandler.empty_xml
-    xml = FeedHandler.empty_xml if xml.css("rss,feed").length == 0
-    xml
+  def self.get_feed(url)
+    feed = Feedzirra::Feed.fetch_and_parse(url)
+    feed = nil if feed == 0
+    feed
+  rescue Feedzirra::NoParserAvailable
+    return nil
   end
   
-  def self.empty_xml
-    @empty_xml ||= Nokogiri("")
+  def self.parse_feed(str)
+    Feedzirra::Feed.parse(str)
+  rescue Feedzirra::NoParserAvailable
+    return nil
   end
   
-  def self.register_callback(feed, xml, protocol_and_host)
+  def self.register_callback(feed, feed_data, protocol_and_host)
     callback = protocol_and_host + "/api/v1/feeds/#{feed.id}/" + feed.nonce
-    hub_url = xml.css("link[rel='hub']")[0]['href'] rescue nil
+    hub_url = feed_data && feed_data.hub
+    hub_url ||= "http://pubsubhubbub.appspot.com/" if settings.environment == "production"
     params = [
       ['hub.callback', callback],
       ['hub.mode', 'subscribe'],
@@ -43,47 +42,36 @@ module FeedHandler
     response.code == 204 || response.code == 202
   end
   
-  def self.feed_name(xml)
-    obj = xml.css('feed > title')[0]
-    obj ||= xml.css('rss > channel > title')[0]
-    (obj && obj.content) || "Untitled Feed"
+  def self.feed_name(feed_data)
+    (feed_data && feed_data.title) || "Untitled Feed"
   end
   
-  def self.identify_feed(xml)
-    if xml.children.detect{|n| n.name == 'feed' }
+  def self.identify_feed(feed_data)
+    if feed_data.class.to_s.match(/atom/i)
       'atom'
-    elsif xml.css("rss[version='2.0']").length > 0
+    elsif feed_data.class.to_s.match(/rss/i)
       'rss2'
     else
       'unknown'
     end
   end
   
-  def self.parse_entries(xml)
+  def self.parse_entries(feed_data)
     entries = []
-    # rss 2.0
-    xml.css('item').each do |item|
-      obj = {
-        :guid => item.css('guid')[0].try(:content) || item.css('link')[0].try(:content),
-        :title => sanitize_and_truncate(item.css('title')[0].try(:inner_html) || "No Title"),
-        :url => item.css('link')[0].try(:content),
-        :short_html => sanitize_and_truncate(CGI.unescape_html(item.css('description')[0].try(:inner_html) || "")),
-        :author_name => "Unknown"
-      }
-      entries << obj if obj[:url]
-    end
-    # atom
-    xml.css('entry').each do |entry|
-      html = entry.css("content[type='html']")[0].try(:inner_html) || entry.css("content[type='xhtml']")[0].try(:inner_html) || entry.css('summary')[0].try(:inner_html)
-      obj = {
-        :guid => entry.css('id')[0].try(:content),
-        :title => sanitize_and_truncate(entry.css('title')[0].try(:inner_html) || "No Title"),
-        :url => (entry.css('link')[0] || {})['href'],
-        :short_html => sanitize_and_truncate(CGI.unescape_html(html || "")),
-        :author_name => entry.css('author name')[0].try(:content) || "Unknown",
-        :author_email => entry.css('author email')[0].try(:content)
-      }
-      entries << obj if obj[:guid] && obj[:url]
+    if feed_data
+      feed_data.entries.each do |item|
+        guid = item.guid if item.respond_to?(:guid) 
+        guid ||= item.id if item.respond_to?(:id) && item.id.is_a?(String)
+        guid ||= item.url
+        obj = {
+          :guid => guid,
+          :title => item.title || "No Title",
+          :url => item.url,
+          :short_html => sanitize_and_truncate(item.content || item.summary),
+          :author_name => item.author || "Unknown"
+        }
+        entries << obj if obj[:url]
+      end
     end
     entries
   end
@@ -171,7 +159,7 @@ module FeedHandler
           current = truncate_elem
         else
           current = previous
-          # why would we do this next line? it just ends up xml escaping stuff
+          # why would we do this next line? it just ends up feed_data escaping stuff
           #current.content = current.content
           current.add_next_sibling(truncate_elem)
           current = truncate_elem

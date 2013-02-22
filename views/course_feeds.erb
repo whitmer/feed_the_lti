@@ -5,10 +5,12 @@
     </ul>
     <% if addable %>
       <div class='form-inline' id='add_feed_form'>
-        <label style="padding-left: 10px;">
-          <input type="checkbox" id="allow_student_feeds" <%= 'checked' if @course.allow_student_feeds %> value="1"/>
-          <span style="margin-top: 5px;">Let students add course feeds</span>
-        </label>
+        <% if admin?(@course.id) %>
+          <label style="padding-left: 10px;">
+            <input type="checkbox" id="allow_student_feeds" <%= 'checked' if @course.allow_student_feeds %> value="1"/>
+            <span style="margin-top: 5px;">Let students add course feeds</span>
+          </label>
+        <% end %>
         <div style="margin-top: 10px;">
           <h3>Add New Feed</h3>
         <input type="text" id="feed_url" placeholder="new feed URL" value="" class="span3"/>

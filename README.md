@@ -1,12 +1,10 @@
-Badges
+Feed The LTI
 ---------------------------
-This is an LTI-enabled service that allows you to award badges
-(Mozilla Open Badges, specifically) to students in a course
-based on their accomplishments in the course. Currently this
-will will only work with Canvas.
+This is an LTI-enabled service that allows you to 
+specify RSS and Atom feeds that will be aggregated
+within a launched context. Feeds can be added by
+instructors, or optionally by students.
 
-Right now this is mostly a proof of concept, so there are some 
-limiting assumptions:
-
-- only one badge per course will work correctly
-- trying to load/edit/manage multiple badges from multiple courses at the same time will not work
+In the future, this will also allow students to 
+track their personal blog feeds and turn in homework
+directly from those feeds.

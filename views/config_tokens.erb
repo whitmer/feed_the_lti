@@ -1,0 +1,16 @@
+<div style="width: 500px; margin: 0 auto;">
+<h2><img src="/badges/default.png" alt=""/> Credentials accepted!</h2>
+<p>
+You can use the following credentials to configure this app for
+use in your course:
+</p>
+<dl>
+  <dt>Key:</dt><dd><%= @conf.consumer_key %></dd>
+  <dt>Secret:</dt><dd><%= @conf.shared_secret %></dd>
+</dl>
+<p>If you want to add FeedTheLTI to your course you'll need to 
+use the key and secret above for authorization.
+<a href="/feed_the_lti.xml">Copy this XML link</a> and pick "By URL" as 
+the configuration type to quickly set it up in Canvas!
+</p>
+</div>

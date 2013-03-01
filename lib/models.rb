@@ -204,10 +204,11 @@ class LtiConfig
   property :consumer_key, String, :length => 512
   property :shared_secret, String, :length => 512
   
-  def self.generate
+  def self.generate(name, key=nil)
     conf = LtiConfig.new
-    conf.consumer_key = Digest::MD5.hexdigest(Time.now.to_i.to_s + rand.to_s)
-    conf.shared_secret = Digest::MD5.hexdigest(Time.now.to_i.to_s + rand.to_s)
+    conf.app_name = name
+    conf.consumer_key = (key || Digest::MD5.hexdigest(Time.now.to_i.to_s + rand.to_s)).to_s
+    conf.shared_secret = Digest::MD5.hexdigest(Time.now.to_i.to_s + rand.to_s + conf.consumer_key)
     conf.save
     conf
   end

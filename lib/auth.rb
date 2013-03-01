@@ -79,7 +79,6 @@ module Sinatra
     @conf = LtiConfig.first(:consumer_key => screen_name)
     @conf ||= LtiConfig.generate("Twitter for @#{screen_name}", screen_name)
     erb :config_tokens
-    render token details
   end
     
   helpers do

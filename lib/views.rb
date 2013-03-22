@@ -7,6 +7,7 @@ module Sinatra
     end
     
     get "/feed_the_lti.xml" do
+      response.headers['Content-Type'] = "text/xml"
       erb :config_xml, :layout => false
     end
     

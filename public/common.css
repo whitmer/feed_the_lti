@@ -37,7 +37,10 @@ body {
 #add_feed_form {
   margin-top: -15px;
 }
-.row.deletable #feed_summary .delete {
+#delete_feed {
+  display: none;
+}
+.row.deletable #feed_summary #delete_feed {
   display: inline;
 }
 .entry {

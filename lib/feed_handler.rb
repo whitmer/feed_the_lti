@@ -19,7 +19,7 @@ module FeedHandler
   def self.register_callback(feed, feed_data, protocol_and_host)
     callback = protocol_and_host + "/api/v1/feeds/#{feed.id}/" + feed.nonce
     hub_url = feed_data && feed_data.hub
-    hub_url ||= "http://pubsubhubbub.appspot.com/" if ENV['RACK_ENV'] == "production"
+    hub_url ||= "http://pubsubhubbub.appspot.com/" if settings.environment.to_s == 'production'
     params = [
       ['hub.callback', callback],
       ['hub.mode', 'subscribe'],
@@ -36,10 +36,11 @@ module FeedHandler
     request = Net::HTTP::Post.new(uri.request_uri)
     request.set_form_data(params)
     response = http.request(request) rescue nil
+    
     return false unless response
 
     # don't forget about SSL
-    response.code == 204 || response.code == 202
+    response.code == "204" || response.code == "202"
   end
   
   def self.feed_name(feed_data)

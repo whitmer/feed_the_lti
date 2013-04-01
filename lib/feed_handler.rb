@@ -67,6 +67,7 @@ module FeedHandler
           :guid => guid,
           :title => item.title || "No Title",
           :url => item.url,
+          :published => item.published,
           :short_html => sanitize_and_truncate(item.content || item.summary),
           :author_name => item.author || "Unknown"
         }

@@ -39,7 +39,7 @@ class Feed
       entry.url = e[:url]
       entry.author_name = e[:author_name]
       entry.short_html = e[:short_html]
-      entry.created_at ||= DateTime.now
+      entry.created_at = e[:published] || entry.created_at || DateTime.now
       entry.save
       entries << entry
     end

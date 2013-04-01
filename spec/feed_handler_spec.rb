@@ -84,6 +84,7 @@ describe FeedHandler do
       entries.length.should == 2
       entries[0].should == {
         :guid => "urn:uuid:1225c695-cfb8-4ebb-aaaa-80da344efa6a",
+        :published => Time.parse("2003-12-13 18:30:02 UTC"),
         :title => "Atom-Powered Robots Run Amok",
         :url => "http://example.org/2003/12/13/atom03.html",
         :short_html => "Some text.",
@@ -92,6 +93,7 @@ describe FeedHandler do
       entries[1].should == {
         :guid => "urn:uuid:1225c695-cfb8-4ebb-aaaa-80da344efa6a2",
         :title => "No Title",
+        :published => nil,
         :url => "http://example.org/2003/12/13/atom03",
         :short_html => "",
         :author_name => "Unknown"
@@ -103,6 +105,7 @@ describe FeedHandler do
       entries.length.should == 2
       entries[0].should == {
         :guid => "unique string per item",
+        :published => Time.parse("2009-09-06 16:45:00 UTC"),
         :title => "Example entry",
         :url => "http://www.wikipedia.org/",
         :short_html => "Here is some text containing an interesting description.",
@@ -111,6 +114,7 @@ describe FeedHandler do
       entries[1].should == {
         :guid => "unique string per item",
         :title => "No Title",
+        :published => nil,
         :url => "http://www.wikipedia.org/",
         :short_html => "",
         :author_name => "Unknown"

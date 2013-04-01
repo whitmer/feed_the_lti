@@ -36,6 +36,8 @@ disable :protection
 # the user takes the assessment
 enable :sessions
 
+set :method_override, true
+
 Feedzirra::Feed.add_common_feed_element(:link, :as => :hub, :value => :href, :with => {:rel => "hub"})
 
 def protocol

@@ -1,0 +1,46 @@
+<div class="row" id="all_feeds">
+  <div class="span3">
+    <ul id="feeds" rel="<%= @primary_context.path %>" data-title="<%= @primary_context.feed_count %>" class="nav nav-pills nav-stacked <%= 'deletable' if @admin %>">
+    </ul>
+    <% if @addable %>
+      <div class='form-inline' id='add_feed_form'>
+        <% if @admin && @primary_context.context_type == 'course' %>
+          <label style="padding-left: 10px;">
+            <input type="checkbox" id="allow_student_feeds" <%= 'checked' if @primary_context.allow_student_feeds %> value="1"/>
+            <span style="margin-top: 5px;">Let students add course feeds</span>
+          </label>
+        <% end %>
+        <div style="margin-top: 10px;">
+          <h3>Add New Feed</h3>
+        <input type="text" id="feed_url" placeholder="new feed URL" value="" class="span3"/>
+        <label style="margin: 5px 0;">
+          Filter: <input type="text" id="feed_filter" placeholder="blank for none" value="" class="span2"/>
+        </label><br/>
+        <button class='btn' id="add_feed"><span class='icon icon-plus'></span> <%= @primary_context.readable_type %> Feed</button>
+        </div>
+      </div>
+    <% end %>
+    <% if @secondary_context && @secondary_context.context_feeds.count > 0 %>
+      <div style="padding-top: 30px;">
+        <a href="#" id="load_secondary_feeds">Load <%= @secondary_context.readable_type %> Feeds</a>
+        <ul id="secondary_feeds" rel="<%= @secondary_context.path %>" class="nav nav-pills nav-stacked <%= 'deletable' if @secondary_context.context_type == 'user' %> <%= 'addable' if @secondary_feeds_shareable %>" data-title="<%= secondary_context.readable_type %> Feed(s)">
+        </ul>
+      </div>
+    <% end %>
+  </div>
+  <div class="span9">
+    <h2>Entries for <%= @primary_context.name %></h2>
+    <% if @selection_mode %>
+      Select any link to insert it as a resource.
+    <% end %>
+    <div id="entries" class="<%= 'selection_mode' if @selection_mode %>" rel="<%= @return_url || "" %>">
+    </div>
+    <div id="more" style="display: none;">
+      <ul class="pager">
+      <li class="previous">
+        <a href="#" id="more_entries">&darr; More</a>
+      </li>
+      </ul>
+    </div>
+  </div>
+</div>

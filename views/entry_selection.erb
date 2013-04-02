@@ -1,10 +1,10 @@
-<!-- need more compact styling for this version of the interface -->
-<h2>Link to a Feed Entry</h2>
-<% if admin?(@course.id) || @course.allow_student_feeds %>
-  <button class='btn' id="add_feed">Add Feed</button>
-<% end %>
-<div id="feeds" rel="courses/<%= @course.id %>">
-  Pick from the list of feeds to see the entries in that feed, then select one of those entries.
-</div>
-<div id="entries" rel="courses/<%= @course.id %>" class="selection">
-</div>
+<% 
+  @addable = admin?(@course.id) || @course.allow_student_feeds 
+  @admin = admin?(@course.id)
+  @secondary_feeds_shareable = addable
+  @primary_context = @course
+  @secondary_context = @user
+  @selection_mode = true
+  @return_url = params['return_url']
+%>
+<%= erb "_context_feeds" %>

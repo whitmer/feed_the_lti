@@ -1,0 +1,10 @@
+<% 
+  @addable = true
+  @admin = true
+  @secondary_feeds_shareable = false
+  @primary_context = @user
+  @secondary_context = @course
+  @selection_mode = true
+  @return_url = params['return_url']
+%>
+<%= erb "_context_feeds" %>

@@ -129,7 +129,7 @@ function program3(depth0,data) {
   stack1 = foundHelper || depth0.url;
   if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
   else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "url", { hash: {} }); }
-  buffer += escapeExpression(stack1) + "\" target=\"_blank\">";
+  buffer += escapeExpression(stack1) + "\" target=\"_blank\" class='entry_link'>";
   foundHelper = helpers.title;
   stack1 = foundHelper || depth0.title;
   if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }

@@ -66,6 +66,19 @@ class Context
     self.context_feeds.map(&:id).uniq
   end
   
+  def path
+    "#{context_type}s/#{id}"
+  end
+  
+  def readable_type
+    context_type == 'course' ? "Course" : "User"
+  end
+  
+  def feed_count
+    cnt = self.context_feeds.count
+    "#{cnt} #{readable_type} Feed" + (cnt == 1 ? "" : "s")
+  end
+  
   def results_for(page, feed_id='all')
     entries = []
     feeds = self.context_feeds

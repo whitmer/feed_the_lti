@@ -1,5 +1,5 @@
 var $primary_feeds = $("#feeds");
-var $secondary_feeds = $("#user_feeds");
+var $secondary_feeds = $("#secondary_feeds");
 var $entries = $("#entries");
 var feeds = {
   feeds: {},
@@ -19,11 +19,13 @@ var feeds = {
         (function() {
           var entry = data.objects[idx];
           var $entry = $(Handlebars.templates['feed_entry'](entry));
-          if(feeds.selectionMode) {
-            $entry.click(function() {
-              feeds.selectEntry(entry);
-            });
-          }
+          $entry.click(function(event) {
+            if($(event.target).closest("a.feed_link").length > 0) {
+              if(feeds.selectEntry(entry)) {
+                event.preventDefault();
+              }
+            }
+          });
           $entries.append($entry);
         })();
       }
@@ -95,11 +97,13 @@ var feeds = {
     $feed.addClass('active');
     $("#feed_summary").remove()
     if(feed.raw_id != 'all') {
+      feed.admin = 
       $("h2").after(Handlebars.templates['feed_summary'](feed));
     }
     if($feeds.hasClass('addable')) {
       $("#feed_summary").addClass('addable');
     }
+    $("#feed_summary").toggleClass('deletable', $feeds.hasClass('deletable'));
     feeds.reloadEntries("/api/v1/" + $feeds.attr('rel') + "/entries.json?feed_id=" + (feed.raw_id || feed.id), $feeds);
     feeds.currentFeed = feed;
   },
@@ -156,8 +160,14 @@ var feeds = {
     });
   },
   selectEntry: function(entry) {
-    alert("LTI embed!");
-    console.log(entry);
+    if(feeds.selectionMode) {
+      alert("LTI embed!");
+      var return_url = $("#entries").attr('rel');
+      console.log(entry);
+      return true;
+    } else {
+      return false;
+    }
   },
   addFeed: function(feed_url, filter, endpoint) {
     $("#add_feed").attr('disabled', true).addClass('disabled');
@@ -201,14 +211,15 @@ var feeds = {
   }
 }
 $(document).ready(function() {
-  feeds.selectionMode = $entries.hasClass('selection');
+  feeds.selectionMode = $entries.hasClass('selection_mode');
   feeds.pingOldestFeed();
   if($primary_feeds.length) {
     feeds.loadFeeds("/api/v1/" + $primary_feeds.attr('rel') + "/feeds.json", $primary_feeds, true);
   }
-  $("#load_user_feeds").click(function(event) {
+  $("#load_secondary_feeds").click(function(event) {
     event.preventDefault();
-    feeds.loadFeeds("/api/v1/users/self/feeds.json", $secondary_feeds, true);
+    var path = "/api/v1/" + $secondary_feeds.attr('rel') + "/feeds.json";
+    feeds.loadFeeds(path, $secondary_feeds, true);
     $(this).hide();
   });
   
@@ -224,9 +235,6 @@ $(document).ready(function() {
     var url = $("#feed_url").val();
     var filter = $("#feed_filter").val() || "";
     feeds.addFeed(url, filter, "/api/v1/" + $primary_feeds.attr('rel') + "/feeds.json");
-  });
-  $("#find_feed").click(function() {
-    feeds.findFeeds("/api/v1/users/self/feeds.json");
   });
   $(document).on('click', "#add_to_feeds", function() {
     feeds.addFeed(feeds.currentFeed.feed_url, feeds.currentFeed.filter, "/api/v1/" + $primary_feeds.attr('rel') + "/feeds.json");
@@ -586,7 +594,7 @@ function program3(depth0,data) {
   stack1 = foundHelper || depth0.url;
   if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }
   else if(stack1=== undef) { stack1 = helperMissing.call(depth0, "url", { hash: {} }); }
-  buffer += escapeExpression(stack1) + "\" target=\"_blank\">";
+  buffer += escapeExpression(stack1) + "\" target=\"_blank\" class='entry_link'>";
   foundHelper = helpers.title;
   stack1 = foundHelper || depth0.title;
   if(typeof stack1 === functionType) { stack1 = stack1.call(depth0, { hash: {} }); }

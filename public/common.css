@@ -40,7 +40,7 @@ body {
 #delete_feed {
   display: none;
 }
-.row.deletable #feed_summary #delete_feed {
+#feed_summary.deletable #delete_feed {
   display: inline;
 }
 .entry {

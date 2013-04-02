@@ -37,8 +37,10 @@ module Sinatra
         # check if they're a teacher or not
         session["permission_for_#{course.id}"] = 'view'
         session["permission_for_#{course.id}"] = 'edit' if provider.roles.include?('instructor') || provider.roles.include?('contentdeveloper') || provider.roles.include?('urn:lti:instrole:ims/lis/administrator') || provider.roles.include?('administrator')
-        if params['selection_directive']
-          redirect to("/courses/#{course.id}/entry_selection")
+        if params['selection_directive'] == 'submit_homework'
+          redirect to("/courses/#{course.id}/user_entry_selection?return_url=" + CGI.escape(params['launch_presentation_return_url']))
+        elsif params['selection_directive']
+          redirect to("/courses/#{course.id}/entry_selection?return_url=" + CGI.escape(params['launch_presentation_return_url']))
         else
           redirect to("/courses/#{course.id}/feeds")
         end

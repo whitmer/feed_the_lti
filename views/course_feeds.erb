@@ -1,8 +1,8 @@
 <% 
   @addable = admin?(@course.id) || @course.allow_student_feeds 
   @admin = admin?(@course.id)
-  @secondary_feeds_shareable = addable
+  @secondary_feeds_shareable = @addable
   @primary_context = @course
   @secondary_context = @user
 %>
-<%= erb "_context_feeds" %>
+<%= erb :_context_feeds %>

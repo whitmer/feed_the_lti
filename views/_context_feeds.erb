@@ -24,7 +24,7 @@
     <% if @secondary_context && @secondary_context.context_feeds.count > 0 %>
       <div style="padding-top: 30px;">
         <a href="#" id="load_secondary_feeds">Load <%= @secondary_context.readable_type %> Feeds</a>
-        <ul id="secondary_feeds" rel="<%= @secondary_context.path %>" class="nav nav-pills nav-stacked <%= 'deletable' if @secondary_context.context_type == 'user' %> <%= 'addable' if @secondary_feeds_shareable %>" data-title="<%= secondary_context.readable_type %> Feed(s)">
+        <ul id="secondary_feeds" rel="<%= @secondary_context.path %>" class="nav nav-pills nav-stacked <%= 'deletable' if @secondary_context.context_type == 'user' %> <%= 'addable' if @secondary_feeds_shareable %>" data-title="<%= @secondary_context.readable_type %> Feed(s)">
         </ul>
       </div>
     <% end %>

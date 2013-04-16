@@ -19,7 +19,7 @@ module FeedHandler
   def self.register_callback(feed, feed_data, protocol_and_host)
     callback = protocol_and_host + "/api/v1/feeds/#{feed.id}/" + feed.nonce
     hub_url = feed_data && feed_data.hub
-    hub_url ||= "http://pubsubhubbub.appspot.com/" if settings.environment.to_s == 'production'
+    hub_url ||= "http://pubsubhubbub.appspot.com/" if FeedTheMe.environment.to_s == 'production'
     params = [
       ['hub.callback', callback],
       ['hub.mode', 'subscribe'],

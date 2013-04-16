@@ -5,7 +5,7 @@ describe 'Data models' do
   include Rack::Test::Methods
   
   def app
-    Sinatra::Application
+    FeedTheMe
   end
   
   describe "Feed" do
@@ -36,6 +36,7 @@ describe 'Data models' do
         FeedHandler.should_receive(:get_feed).with(params['url']).and_return(Feedzirra::Feed.parse(atom_example))
         cf = @course.create_feed(params['url'], nil, 1, "http://example.com")
         feed = cf.feed
+        feed.should be_is_a(Feed)
         feed.should_not be_nil
         feed.feed_url.should == params['url']
         feed.name.should == "Example Feed"
@@ -53,8 +54,12 @@ describe 'Data models' do
           'url' => 'http://example.com/feed.xml'
         }
         FeedHandler.should_receive(:get_feed).with(params['url']).and_return(Feedzirra::Feed.parse(atom_example))
-        feed = @course.create_feed(params['url'], 'friends', nil, "http://example.com")
+        cf = @course.create_feed(params['url'], 'friends', nil, "http://example.com")
+        cf.should_not be_nil
+        feed = cf.feed
         feed.should_not be_nil
+        feed.should be_is_a(Feed)
+        feed.callback_enabled.should == false
         cf = ContextFeed.last
         cf.context_id.should == @course.id
         cf.feed_id.should == feed.id
@@ -67,10 +72,11 @@ describe 'Data models' do
           'url' => 'http://example.com/feed.xml'
         }
         FeedHandler.should_receive(:get_feed).with(params['url']).and_return(Feedzirra::Feed.parse(atom_example(true)))
-        Net::HTTP.any_instance.should_receive(:request).and_return(OpenStruct.new({:code => 202}))
+        FeedHandler.should_receive(:register_callback).and_return(true)
         cf = @course.create_feed(params['url'], nil, nil, "http://example.com")
         feed = cf.feed
         feed.should_not be_nil
+        feed.should be_is_a(Feed)
         feed.feed_url.should == params['url']
         feed.name.should == "Example Feed"
         feed.callback_enabled.should == true

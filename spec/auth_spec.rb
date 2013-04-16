@@ -4,7 +4,7 @@ describe 'LTI Launch' do
   include Rack::Test::Methods
   
   def app
-    Sinatra::Application
+    FeedTheMe
   end
   
   describe "POST lti_launch" do
@@ -70,9 +70,9 @@ describe 'LTI Launch' do
       LtiConfig.create(:consumer_key => 'lti', :shared_secret => '123')
       IMS::LTI::ToolProvider.any_instance.stub(:valid_request?).and_return(true)
       IMS::LTI::ToolProvider.any_instance.stub(:roles).and_return(['student'])
-      post "/lti_launch", {'oauth_consumer_key' => 'lti', 'tool_consumer_instance_guid' => 'something', 'user_id' => '1', 'context_id' => '2', 'selection_directive' => 'select_link'}
+      post "/lti_launch", {'oauth_consumer_key' => 'lti', 'tool_consumer_instance_guid' => 'something', 'user_id' => '1', 'context_id' => '2', 'selection_directive' => 'select_link', 'launch_presentation_return_url' => 'http://www.example.com/done'}
       last_response.should be_redirect
-      last_response.location.should == "http://example.org/courses/2/entry_selection"
+      last_response.location.should == "http://example.org/courses/2/entry_selection?return_url=http%3A%2F%2Fwww.example.com%2Fdone"
     end
     
   end  

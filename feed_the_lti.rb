@@ -1,20 +1,4 @@
-begin
-  require 'rubygems'
-rescue LoadError
-  puts "You must install rubygems to run this example"
-  raise
-end
-
-begin
-  require 'bundler/setup'
-rescue LoadError
-  puts "to set up this example, run these commands:"
-  puts "  gem install bundler"
-  puts "  bundle install"
-  raise
-end
-
-require 'sinatra'
+require 'sinatra/base'
 require 'oauth'
 require 'json'
 require 'dm-core'
@@ -30,22 +14,28 @@ require './lib/feed_handler.rb'
 require './lib/models.rb'
 require './lib/views.rb'
 
-# sinatra wants to set x-frame-options by default, disable it
-disable :protection
-# enable sessions so we can remember the launch info between http requests, as
-# the user takes the assessment
-enable :sessions
+class FeedTheMe < Sinatra::Base
+  register Sinatra::Api
+  register Sinatra::Auth
+  register Sinatra::Views
+  
+  # sinatra wants to set x-frame-options by default, disable it
+  disable :protection
+  # enable sessions so we can remember the launch info between http requests, as
+  # the user takes the assessment
+  enable :sessions
 
-# set session key in heroku with: heroku config:add SESSION_KEY=a_longish_secret_key
-raise "session key required" if ENV['RACK_ENV'] == 'production' && !ENV['SESSION_KEY']
-set :session_secret, ENV['SESSION_KEY'] || "local_secret"
+  # set session key in heroku with: heroku config:add SESSION_KEY=a_longish_secret_key
+  raise "session key required" if ENV['RACK_ENV'] == 'production' && !ENV['SESSION_KEY']
+  set :session_secret, ENV['SESSION_KEY'] || "local_secret"
 
-set :method_override, true
+  set :method_override, true
 
-Feedzirra::Feed.add_common_feed_element(:link, :as => :hub, :value => :href, :with => {:rel => "hub"})
+  Feedzirra::Feed.add_common_feed_element(:link, :as => :hub, :value => :href, :with => {:rel => "hub"})
 
-def protocol
-  ENV['RACK_ENV'] == 'production' ? "https" : "http"
+  env = ENV['RACK_ENV'] || settings.environment
+  DataMapper.setup(:default, (ENV["DATABASE_URL"] || ENV["HEROKU_POSTGRESQL_BRONZE_URL"] || "sqlite3:///#{Dir.pwd}/#{env}.sqlite3"))
+  DataMapper.auto_upgrade!
 end
 
 class Object

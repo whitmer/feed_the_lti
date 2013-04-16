@@ -4,7 +4,7 @@ describe 'API calls' do
   include Rack::Test::Methods
   
   def app
-    Sinatra::Application
+    FeedTheMe
   end
   
 # get feed entries for the specified course, possibly filtered to a specific feed id

@@ -1,5 +1,4 @@
-<%= raise "NEED DIFFERENT STYLING" if @selection_mode %>
-<div class="row" id="all_feeds">
+<div class="row <%= 'selectable' if @selection_mode %>" id="all_feeds">
   <div class="span3">
     <ul id="feeds" rel="<%= @primary_context.path %>" data-title="<%= @primary_context.feed_count %>" class="nav nav-pills nav-stacked <%= 'deletable' if @admin %>">
     </ul>

@@ -36,6 +36,10 @@ disable :protection
 # the user takes the assessment
 enable :sessions
 
+# set session key in heroku with: heroku config:add SESSION_KEY=a_longish_secret_key
+raise "session key required" if ENV['RACK_ENV'] == 'production' && !ENV['SESSION_KEY']
+set :session_secret, ENV['SESSION_KEY'] || "local_secret"
+
 set :method_override, true
 
 Feedzirra::Feed.add_common_feed_element(:link, :as => :hub, :value => :href, :with => {:rel => "hub"})

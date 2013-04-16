@@ -68,3 +68,16 @@ body {
 .entry .content {
   padding-left: 15px;
 }
+.selectable .entry {
+  padding: 2px 5px;
+  margin-bottom: 5px;
+}
+.selectable .entry:hover {
+  background: #eee;
+  cursor: pointer;
+  border-radius: 5px;
+}
+.selectable .entry a.entry_link:hover {
+  text-decoration: none;
+  color: #0088CC;
+}

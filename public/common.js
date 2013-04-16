@@ -7,7 +7,7 @@ var feeds = {
     $("#more").hide();
     $.getJSON(url, function(data) {
       if(!data.objects) { 
-        alert("Error!");
+        alert("Error retrieving entries");
         return;
       }
       if(data.feeds) {
@@ -20,7 +20,7 @@ var feeds = {
           var entry = data.objects[idx];
           var $entry = $(Handlebars.templates['feed_entry'](entry));
           $entry.click(function(event) {
-            if($(event.target).closest("a.feed_link").length > 0) {
+            if($(event.target).closest("a.entry_link").length > 0 || $(event.target).closest("a").length == 0) {
               if(feeds.selectEntry(entry)) {
                 event.preventDefault();
               }
@@ -78,7 +78,7 @@ var feeds = {
     }
     $.getJSON(url, function(data) {
       if(!data.objects) { 
-        alert("Error!");
+        alert("Error loading feed");
         return;
       }
       for(var idx = 0; idx < data.objects.length; idx++) {
@@ -117,7 +117,7 @@ var feeds = {
         feeds.feeds[feeds.currentFeed.id].elem.click();
       },
       error: function() {
-        alert("Error!");
+        alert("Error refreshing feed");
       }
     });
   },
@@ -137,7 +137,7 @@ var feeds = {
         $feeds.find(".feed:first").click();
       },
       error: function() {
-        alert("Error!");
+        alert("Error deleting feed");
       }
     });
     
@@ -155,15 +155,28 @@ var feeds = {
       success: function(data) {
       },
       error: function() {
-        alert("Error!");
+        alert("Error updating feed");
       }
     });
   },
   selectEntry: function(entry) {
     if(feeds.selectionMode) {
-      alert("LTI embed!");
       var return_url = $("#entries").attr('rel');
-      console.log(entry);
+      var data = {
+        embed_type: 'link',
+        title: entry.title,
+        url: entry.url,
+        text: entry.title
+      };
+      if(return_url) {
+        var url = return_url;
+        for(var idx in data) {
+          url = url + (url.match(/\?/) ? "&" : "?") + idx + "=" + encodeURIComponent(data[idx]);
+        }
+        location.href = url;
+      } else {
+        alert("Oops! It looks like there was a problem with how this page got loaded. Please reload your browser and try again.");
+      }
       return true;
     } else {
       return false;
@@ -192,7 +205,7 @@ var feeds = {
         feeds.feeds[data.id].elem.click();
       },
       error: function() {
-        alert("Error!");
+        alert("Error adding feed");
         $("#add_feed").attr('disabled', false).removeClass('disabled');
       }
     });

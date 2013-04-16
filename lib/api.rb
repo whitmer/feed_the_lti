@@ -88,7 +88,7 @@ module Sinatra
       cf = ContextFeed.first(:context => context.id, :id => params['feed_id'], :user_id => session['user_id']) if context && session['user_id']
       user = Context.first(:context_type => 'user', :id => session['user_id']) if session['user_id']
       return error_json("not authorized") if context_type == 'course' && (!admin?(params['context_id']) || cf)
-      return error_json("not authorized") if context_type == 'user' && params['context_id'] != session['user_id']
+      return error_json("not authorized") if context_type == 'user' && params['context_id'].to_i != session['user_id']
       cf ||= ContextFeed.first(:context_id => context.id, :id => params['feed_id']) if context
       return error_json("not found") unless context && cf
       cf.delete_feed
@@ -102,7 +102,7 @@ module Sinatra
       context = Context.first(:context_type => context_type, :id => params['context_id'])
       return error_json("not authorized") if context_type == 'course' && !participant?(params['context_id'])
       return error_json("session required") if !session['user_id']
-      return error_json("not authorized") if context_type == 'user' && session['user_id'] != params['context_id']
+      return error_json("not authorized") if context_type == 'user' && session['user_id'] != params['context_id'].to_i
       return error_json("not found") unless context
       page = params['page'].to_i
       feeds = context.context_feeds.all(:limit => 26, :offset => (page * 25))

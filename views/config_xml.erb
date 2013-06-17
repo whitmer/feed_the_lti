@@ -23,6 +23,14 @@
         <lticm:property name="enabled">true</lticm:property>
       </lticm:options>
     <% end %>
+    <% if params['homework_submission'] %>
+      <lticm:options name="homework_submission">
+        <lticm:property name="enabled">true</lticm:property>
+        <lticm:property name="url"><%= url %></lticm:property>
+        <lticm:property name="selection_width">830</lticm:property>
+        <lticm:property name="selection_height">500</lticm:property>
+      </lticm:options>
+    <% end %>
   </blti:extensions>
   <cartridge_bundle identifierref="BLTI001_Bundle"/>
   <cartridge_icon identifierref="BLTI001_Icon"/>

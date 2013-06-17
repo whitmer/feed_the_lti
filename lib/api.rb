@@ -61,6 +61,14 @@ module Sinatra
         return error_json("not authorized") unless session['user_id'] == params['user_id']
       end
     
+      # add a new feed to the user
+      app.post "/api/v1/users/:user_id/feeds.json" do
+        user = Context.first(:context_type => 'user', :id => session['user_id']) if session['user_id']
+        return error_json("not found") unless user
+        feed = user.create_feed(params['url'], params['filter'], session['user_id'], "#{protocol}://#{request.host_with_port}") if user
+        feed.to_json
+      end
+
       # add a new feed to the course
       app.post "/api/v1/courses/:course_id/feeds.json" do
         course = Context.first(:context_type => 'course', :id => params['course_id'])

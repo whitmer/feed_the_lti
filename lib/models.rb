@@ -226,3 +226,24 @@ class LtiConfig
     conf
   end
 end
+
+require 'dm-migrations/migration_runner'
+# I can never find good documentation on migrations for datamapper, don't judge
+module  FixupMigration
+  def self.enlarge_columns
+    migration 1, :enlarge_small_column do
+      up do
+        # user config
+        modify_table :contexts do
+          add_column :temp_name, String, :length => 4096
+        end
+        adapter.execute("UPDATE contexts SET temp_name=name")
+        modify_table :contexts do
+          drop_column :name
+          rename_column :temp_name, :name
+        end
+      end
+    end
+    migrate_up!
+  end
+end

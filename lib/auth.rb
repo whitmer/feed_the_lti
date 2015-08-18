@@ -30,7 +30,7 @@ module Sinatra
           if !course
             course = Context.new(:global_id => course_id, :context_type => 'course')
             course.lti_config_id = config.id
-            course.name = (params['context_title'] || "Course")[0, 30]
+            course.name = params['context_title'] || "Course"
             course.image_url = "/course_fallback.png"
             course.save
           end

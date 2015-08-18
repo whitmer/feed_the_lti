@@ -33,7 +33,7 @@ describe 'Data models' do
         params = {
           'url' => 'http://example.com/feed.xml'
         }
-        FeedHandler.should_receive(:get_feed).with(params['url']).and_return(Feedzirra::Feed.parse(atom_example))
+        FeedHandler.should_receive(:get_feed).with(params['url']).and_return(Feedjira::Feed.parse(atom_example))
         cf = @course.create_feed(params['url'], nil, 1, "http://example.com")
         feed = cf.feed
         feed.should be_is_a(Feed)
@@ -53,7 +53,7 @@ describe 'Data models' do
         params = {
           'url' => 'http://example.com/feed.xml'
         }
-        FeedHandler.should_receive(:get_feed).with(params['url']).and_return(Feedzirra::Feed.parse(atom_example))
+        FeedHandler.should_receive(:get_feed).with(params['url']).and_return(Feedjira::Feed.parse(atom_example))
         cf = @course.create_feed(params['url'], 'friends', nil, "http://example.com")
         cf.should_not be_nil
         feed = cf.feed
@@ -71,7 +71,7 @@ describe 'Data models' do
         params = {
           'url' => 'http://example.com/feed.xml'
         }
-        FeedHandler.should_receive(:get_feed).with(params['url']).and_return(Feedzirra::Feed.parse(atom_example(true)))
+        FeedHandler.should_receive(:get_feed).with(params['url']).and_return(Feedjira::Feed.parse(atom_example(true)))
         FeedHandler.should_receive(:register_callback).and_return(true)
         cf = @course.create_feed(params['url'], nil, nil, "http://example.com")
         feed = cf.feed

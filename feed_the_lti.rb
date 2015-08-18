@@ -6,7 +6,7 @@ require 'dm-migrations'
 require 'nokogiri'
 require 'oauth/request_proxy/rack_request'
 require 'ims/lti'
-require 'feedzirra'
+require 'feedjira'
 
 require './lib/api.rb'
 require './lib/auth.rb'
@@ -31,7 +31,7 @@ class FeedTheMe < Sinatra::Base
 
   set :method_override, true
 
-  Feedzirra::Feed.add_common_feed_element(:link, :as => :hub, :value => :href, :with => {:rel => "hub"})
+  Feedjira::Feed.add_common_feed_element(:link, :as => :hub, :value => :href, :with => {:rel => "hub"})
 
   env = ENV['RACK_ENV'] || settings.environment
   DataMapper.setup(:default, (ENV["DATABASE_URL"] || ENV["HEROKU_POSTGRESQL_BRONZE_URL"] || "sqlite3:///#{Dir.pwd}/#{env}.sqlite3"))

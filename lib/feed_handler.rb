@@ -1,18 +1,18 @@
 require 'sanitize'
-require 'feedzirra'
+require 'feedjira'
 
 module FeedHandler
   def self.get_feed(url)
-    feed = Feedzirra::Feed.fetch_and_parse(url)
+    feed = Feedjira::Feed.fetch_and_parse(url) rescue 0
     feed = nil if feed == 0
     feed
-  rescue Feedzirra::NoParserAvailable
+  rescue Feedjira::NoParserAvailable
     return nil
   end
   
   def self.parse_feed(str)
-    Feedzirra::Feed.parse(str)
-  rescue Feedzirra::NoParserAvailable
+    Feedjira::Feed.parse(str)
+  rescue Feedjira::NoParserAvailable
     return nil
   end
   
@@ -84,7 +84,7 @@ module FeedHandler
   
   def self.sanitize(html)
     html ||= ""
-    Sanitize.clean(html, Sanitize::Config::BASIC)
+    Sanitize.fragment(html, Sanitize::Config::BASIC)
   end
   
   def self.truncate_html(html)
@@ -186,10 +186,4 @@ module FeedHandler
     end
     res ||= doc.root.children.first.inner_html rescue ""
   end
-  
-      html ||= ""
-    html
-  end
-  
-  def truncate
 end

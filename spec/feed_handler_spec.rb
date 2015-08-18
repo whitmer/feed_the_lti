@@ -151,7 +151,7 @@ describe FeedHandler do
     
     it "should sanitize non-whitelisted tags" do
       FeedHandler.sanitize_and_truncate("<script>test</script>").should == "test"
-      FeedHandler.sanitize_and_truncate("<iframe>some words<pre>asdf</pre>").should == "<p>some words</p>\n<pre>asdf</pre>"
+      FeedHandler.sanitize_and_truncate("<iframe></iframe>some <b>words</b><pre>asdf</pre>").should == "<p>some <b>words</b></p>\n<pre>asdf</pre>"
     end
     
     it "should not truncate within an html tag" do

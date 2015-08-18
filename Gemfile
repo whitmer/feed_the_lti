@@ -1,7 +1,8 @@
+ruby '2.2.1'
 source "http://rubygems.org"
 
-gem "sinatra", "1.3.1"
-gem "oauth",   "0.4.5"
+gem "sinatra"
+gem "oauth"
 gem "json"
 gem "ims-lti"
 gem "nokogiri"
@@ -12,7 +13,7 @@ gem 'dm-aggregates'
 gem 'dm-postgres-adapter'
 gem 'erubis'
 gem 'sanitize'
-gem 'feedzirra'
+gem 'feedjira'
 
 group :development do
     gem 'dm-sqlite-adapter'

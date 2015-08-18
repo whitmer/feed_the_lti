@@ -53,7 +53,7 @@ end
 class Context
   include DataMapper::Resource
   property :id, Serial
-  property :name, String
+  property :name, String, :length => 4096
   property :context_type, String, :index => true
   property :allow_student_feeds, Boolean
   property :global_id, String, :length => 512, :index => true
